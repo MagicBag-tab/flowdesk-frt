@@ -217,3 +217,8 @@ code {
     transform: rotate(360deg);
   }
 }
+
+.auth-brand__logo {
+  width: 300px;
+  margin-bottom: 20px;
+}
