@@ -8,7 +8,7 @@
   --color-structure-subtle:  #E8F0F8;   
   --color-structure-tint:    #F0EBE3;  
 
-  --color-bg-app:            #F7F1EA;  
+  --color-bg-app:            #f5f5f5;  
   --color-bg-panel:          #EDE5D8;  
   --color-bg-border:         #E0D0BC;  
   --color-bg-surface:        #FFFFFF;   
@@ -44,5 +44,5 @@
   --color-text-secondary:    #2C3E55;   
   --color-text-muted:        #A8B8CC;  
 
-  --shadow-card: 0 2px 12px rgba(30, 39, 56, 0.08);
+  --shadow-card: 0 2px 12px rgba(13, 17, 24, 0.08);
 }

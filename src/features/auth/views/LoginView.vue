@@ -1,12 +1,8 @@
 <template>
   <section class="auth-card">
     <div class="auth-brand">
-      <!-- <span class="auth-brand__icon">📋</span>
-      <h2 class="auth-brand__name">FlowDesk</h2> -->
       <img src="../../../logo/logo-blanco.png" alt="FlowDesk Logo" class="auth-brand__logo" />
     </div>
-
-    <!-- <h1 class="auth-title">Iniciar Sesión</h1> -->
 
     <div v-if="submitError" class="alert alert-error">
       <span>{{ submitError }}</span>

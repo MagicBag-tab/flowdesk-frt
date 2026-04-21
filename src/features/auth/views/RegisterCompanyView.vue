@@ -1,11 +1,10 @@
 <template>
   <section class="auth-card auth-card--wide">
     <div class="auth-brand">
-      <span class="auth-brand__icon">📋</span>
-      <h2 class="auth-brand__name">FlowDesk</h2>
+      <img src="../../../logo/logo-blanco.png" alt="FlowDesk Logo" class="auth-brand__logo" />
     </div>
 
-    <h1 class="auth-title">Registrar Empresa</h1>
+    <h3 class="auth-title">Contáctanos para registrar tu empresa</h3>
 
     <div v-if="submitError" class="alert alert-error">
       <span>{{ submitError }}</span>
@@ -16,7 +15,7 @@
       <span>{{ successMessage }}</span>
     </div>
 
-    <form v-if="!registeredCompany" @submit.prevent="submitRegistration">
+    <form v-if="!requestSent" @submit.prevent="submitRequest">
       <div class="form-group">
         <label class="form-label" for="company-name">Nombre de la Empresa</label>
         <input
@@ -32,21 +31,21 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label" for="admin-username">Usuario Admin</label>
+        <label class="form-label" for="admin-username">Nombre encargado</label>
         <input
           id="admin-username"
           v-model="form.admin_username"
           type="text"
           class="form-input"
           :class="{ 'input-error': errors.admin_username }"
-          placeholder="usuario"
+          placeholder="Nombre completo"
           @input="clearFieldError('admin_username')"
         />
         <span v-if="errors.admin_username" class="error-msg">{{ errors.admin_username }}</span>
       </div>
 
       <div class="form-group">
-        <label class="form-label" for="admin-email">Correo Admin</label>
+        <label class="form-label" for="admin-email">Correo electrónico</label>
         <input
           id="admin-email"
           v-model="form.admin_email"
@@ -59,41 +58,9 @@
         <span v-if="errors.admin_email" class="error-msg">{{ errors.admin_email }}</span>
       </div>
 
-      <div class="form-group">
-        <label class="form-label" for="admin-password">Contraseña Admin</label>
-        <input
-          id="admin-password"
-          v-model="form.admin_password"
-          type="password"
-          class="form-input"
-          :class="{ 'input-error': errors.admin_password }"
-          placeholder="Mínimo 6 caracteres"
-          maxlength="20"
-          @input="clearFieldError('admin_password')"
-        />
-        <span v-if="errors.admin_password" class="error-msg">{{ errors.admin_password }}</span>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="admin-confirm-password">Confirmar Contraseña</label>
-        <input
-          id="admin-confirm-password"
-          v-model="form.admin_confirm_password"
-          type="password"
-          class="form-input"
-          :class="{ 'input-error': errors.admin_confirm_password }"
-          placeholder="Repite la contraseña"
-          maxlength="20"
-          @input="clearFieldError('admin_confirm_password')"
-        />
-        <span v-if="errors.admin_confirm_password" class="error-msg">
-          {{ errors.admin_confirm_password }}
-        </span>
-      </div>
-
       <button type="submit" class="btn-primary" :disabled="isSubmitting">
         <span v-if="isSubmitting" class="spinner" aria-hidden="true"></span>
-        <span>{{ isSubmitting ? 'Registrando...' : 'Registrar Empresa' }}</span>
+        <span>{{ isSubmitting ? 'Enviando solicitud...' : 'Enviar Solicitud' }}</span>
       </button>
     </form>
 
@@ -105,38 +72,28 @@
 import { reactive, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 
-import { registerCompany } from '@/features/auth/api';
-import type { CompanyRegisterRequest, CompanyResponse } from '@/features/auth/types';
 import { getApiErrorMessage } from '@/services/apiClient';
 
-interface RegisterForm extends CompanyRegisterRequest {
-  admin_password: string;
-  admin_confirm_password: string;
+interface RequestForm extends CompanyRegisterRequest {
 }
 
-type RegistrationField = keyof RegisterForm;
+type RegistrationField = keyof RequestForm;
 
-const form = reactive<RegisterForm>({
+const form = reactive<RequestForm>({
   name: '',
   admin_email: '',
   admin_username: '',
-  admin_password: '',
-  admin_confirm_password: '',
-  schema_name: '',
 });
 
 const errors = reactive<Record<RegistrationField, string>>({
   name: '',
   admin_email: '',
   admin_username: '',
-  admin_password: '',
-  admin_confirm_password: '',
-  schema_name: '',
 });
 
 const isSubmitting = ref(false);
 const submitError = ref('');
-const registeredCompany = ref<CompanyResponse | null>(null);
+const requestSent = ref(false);
 const successMessage = ref('');
 
 function clearFieldError(field: RegistrationField): void {
@@ -178,29 +135,10 @@ function validate(): boolean {
     isValid = false;
   }
 
-  if (!form.admin_password) {
-    errors.admin_password = 'La contraseña es obligatoria.';
-    isValid = false;
-  } else if (form.admin_password.length < 6) {
-    errors.admin_password = 'Mínimo 6 caracteres.';
-    isValid = false;
-  } else if (form.admin_password.length > 20) {
-    errors.admin_password = 'Máximo 20 caracteres.';
-    isValid = false;
-  }
-
-  if (!form.admin_confirm_password) {
-    errors.admin_confirm_password = 'Confirma la contraseña.';
-    isValid = false;
-  } else if (form.admin_confirm_password !== form.admin_password) {
-    errors.admin_confirm_password = 'Las contraseñas no coinciden.';
-    isValid = false;
-  }
-
   return isValid;
 }
 
-async function submitRegistration(): Promise<void> {
+async function submitRequest(): Promise<void> {
   submitError.value = '';
 
   if (!validate()) {
@@ -210,14 +148,9 @@ async function submitRegistration(): Promise<void> {
   isSubmitting.value = true;
 
   try {
-    form.schema_name = deriveSchemaName(form.name.trim());
-    registeredCompany.value = await registerCompany({
-      name: form.name.trim(),
-      schema_name: form.schema_name.trim(),
-      admin_email: form.admin_email.trim().toLowerCase(),
-      admin_username: form.admin_username.trim(),
-    });
-    successMessage.value = 'Empresa registrada. La contraseña queda pendiente en backend.';
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    requestSent.value = true;
+    successMessage.value = '¡Solicitud enviada! Nos pondremos en contacto contigo pronto.';
   } catch (error) {
     submitError.value = getApiErrorMessage(error);
   } finally {

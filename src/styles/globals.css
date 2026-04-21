@@ -48,10 +48,12 @@ code {
   align-items: center;
   justify-content: center;
   padding: 24px 16px;
+  background-color: var(--color-structure-hover);
+
 }
 
 .auth-card {
-  background: var(--color-card);
+  background: var(--color-bg-app);
   border-radius: 14px;
   box-shadow: var(--shadow-card);
   padding: 40px 36px;
@@ -75,12 +77,6 @@ code {
   font-size: 1.4rem;
 }
 
-.auth-brand__name {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--color-brand);
-  margin: 0;
-}
 
 .auth-title {
   font-size: 1.5rem;
@@ -138,7 +134,7 @@ code {
 .form-input {
   width: 100%;
   padding: 9px 12px;
-  border: 1.5px solid var(--color-line);
+  border: 1.5px solid var(--color-structure-subtle);
   border-radius: 8px;
   font-size: 0.88rem;
   color: var(--color-text);
@@ -149,7 +145,7 @@ code {
 }
 
 .form-input:focus {
-  border-color: var(--color-brand);
+  border-color: var(--color-structure-base);
   background: #fff;
 }
 
@@ -158,19 +154,19 @@ code {
 }
 
 .form-input.input-error {
-  border-color: var(--color-error);
+  border-color: var(--color-accent);
   background: #fff8f8;
 }
 
 .error-msg {
-  color: var(--color-error);
+  color: var(--color-accent);
   font-size: 0.78rem;
 }
 
 .btn-primary {
   width: 100%;
   padding: 10px;
-  background: var(--color-brand);
+  background: var(--color-structure-base);
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -187,7 +183,7 @@ code {
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--color-brand-dark);
+  filter: brightness(130%);
 }
 
 .btn-primary:disabled {
@@ -198,7 +194,7 @@ code {
 .auth-link {
   display: inline-flex;
   margin-top: 16px;
-  color: var(--color-brand);
+  color: var(--color-structure-base);
   font-size: 0.88rem;
   font-weight: 600;
 }

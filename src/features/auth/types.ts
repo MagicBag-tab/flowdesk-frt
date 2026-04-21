@@ -10,7 +10,6 @@ export interface TokenResponse {
 
 export interface CompanyRegisterRequest {
   name: string;
-  schema_name: string;
   admin_email: string;
   admin_username: string;
 }
