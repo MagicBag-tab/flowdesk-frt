@@ -2,7 +2,7 @@
   <div class="main-layout">
     <aside class="sidebar">
       <div class="sidebar__brand">
-        <img src="../../logo/logo-blanco.png" alt="FlowDesk" class="sidebar__logo" />
+        <img src="../../logo/logo.png" alt="FlowDesk" class="sidebar__logo" />
       </div>
 
       <nav class="sidebar__nav">
