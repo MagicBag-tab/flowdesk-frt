@@ -4,6 +4,7 @@ import AuthLayout from '@/app/layouts/AuthLayout.vue';
 import LoginView from '@/features/auth/views/LoginView.vue';
 import RegisterCompanyView from '@/features/auth/views/RegisterCompanyView.vue';
 import InventoryView from '@/features/inventory/views/InventoryView.vue';
+import SuperAdminView from '@/features/roles/views/SuperAdminView.vue';
 import { appStore } from '@/stores/app.store';
 
 declare module 'vue-router' {
@@ -57,6 +58,18 @@ const routes: RouteRecordRaw[] = [
     path: '/:pathMatch(.*)*',
     redirect: { name: 'login' },
   },
+  {
+    path: '/superAdmin',
+    name: 'superAdmin',
+    component: SuperAdminView,
+    meta: {
+      title: 'SuperAdmin',
+    },
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: { name: 'login' },
+  },
 ];
 
 const router = createRouter({
@@ -67,14 +80,14 @@ const router = createRouter({
 router.beforeEach((to) => {
   const isAuthenticated = appStore.isAuthenticated.value;
 
-  if (to.meta.requiresAuth && !isAuthenticated) {
-    return {
-      name: 'login',
-      query: typeof to.fullPath === 'string' && to.fullPath !== '/login'
-        ? { redirect: to.fullPath }
-        : {},
-    };
-  }
+  // if (to.meta.requiresAuth && !isAuthenticated) {
+  //   return {
+  //     name: 'login',
+  //     query: typeof to.fullPath === 'string' && to.fullPath !== '/login'
+  //       ? { redirect: to.fullPath }
+  //       : {},
+  //   };
+  // }
 
   if (to.meta.guestOnly && isAuthenticated) {
     return { name: 'inventory' };

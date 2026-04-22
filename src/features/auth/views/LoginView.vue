@@ -96,13 +96,13 @@ function validate(): boolean {
   }
 
   if (!form.password) {
-    errors.password = 'La contrasena es obligatoria.';
+    errors.password = 'La contraseña es obligatoria.';
     isValid = false;
   } else if (form.password.length < 6) {
-    errors.password = 'La contrasena debe tener al menos 6 caracteres.';
+    errors.password = 'La contraseña debe tener al menos 6 caracteres.';
     isValid = false;
   } else if (form.password.length > 20) {
-    errors.password = 'La contrasena no puede exceder 20 caracteres.';
+    errors.password = 'La contraseña no puede exceder 20 caracteres.';
     isValid = false;
   }
 
