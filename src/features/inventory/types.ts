@@ -6,6 +6,7 @@ export interface InventoryProduct {
   precio: number;
   stockMinimo: number;
   proveedor?: string | null;
+  is_active: boolean;
 }
 
 export interface InventoryProductForm {
@@ -16,4 +17,5 @@ export interface InventoryProductForm {
   precio: number | null;
   stockMinimo: number | null;
   proveedor?: string | null;
+  is_active: boolean;
 }

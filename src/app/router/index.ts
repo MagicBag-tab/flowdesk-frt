@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
 
 import AuthLayout from '@/app/layouts/AuthLayout.vue';
+import MainLayout from '@/app/layouts/MainLayout.vue';
 import LoginView from '@/features/auth/views/LoginView.vue';
 import RegisterCompanyView from '@/features/auth/views/RegisterCompanyView.vue';
 import InventoryView from '@/features/inventory/views/InventoryView.vue';
@@ -46,13 +47,23 @@ const routes: RouteRecordRaw[] = [
     ],
   },
   {
-    path: '/inventory',
-    name: 'inventory',
-    component: InventoryView,
+    path: '/',
+    name: 'MainLayout',
+    component: MainLayout,
     meta: {
       requiresAuth: true,
-      title: 'Inventario',
     },
+    children: [
+      {
+        path: "inventory",
+        name: "inventory",
+        component: InventoryView,
+        meta: {
+          title: "Inventario",
+        },
+      }
+      //Se agregan nuevas features al menú principal aquí, como movimiento, análisis, clientes, etc.
+    ]
   },
   {
     path: '/:pathMatch(.*)*',
