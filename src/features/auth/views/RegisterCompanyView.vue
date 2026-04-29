@@ -73,6 +73,8 @@ import { reactive, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 
 import { getApiErrorMessage } from '@/services/apiClient';
+import type { CompanyRegisterRequest } from '@/features/auth/types';
+
 
 interface RequestForm extends CompanyRegisterRequest {
 }

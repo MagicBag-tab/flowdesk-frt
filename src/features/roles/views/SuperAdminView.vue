@@ -17,12 +17,11 @@
           v-for="negocio in negocios"
           :key="negocio.id"
           class="item"
-          @click="irANegocio(negocio.id)"
         >
           <div>
             <div class="item-name">{{ negocio.nombre }}</div>
           </div>
-          <span class="arrow">›</span>
+          <span class="arrow">&gt</span>
         </div>
       </div>
 
