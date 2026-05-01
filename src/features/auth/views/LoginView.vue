@@ -57,6 +57,8 @@ import { loginWithPassword } from '@/features/auth/api';
 import type { LoginRequest } from '@/features/auth/types';
 import { getApiErrorMessage } from '@/services/apiClient';
 import { appStore } from '@/stores/app.store';
+import { resolveHomeByRole, isValidRole } from '@/utils/roles';
+
 
 interface LoginErrors {
   email: string;
@@ -126,7 +128,16 @@ async function submitLogin(): Promise<void> {
 
     appStore.setSession(tokenResponse);
 
-    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/inventory';
+    const role = appStore.roleName.value;
+
+    if (!isValidRole(role)) {
+      submitError.value = 'Tu cuenta no tiene un rol válido asignado. Contacta al administrador.';
+      appStore.clearSession();
+      return;
+    }
+
+
+    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : resolveHomeByRole(role);
     await router.push(redirect);
   } catch (error) {
     submitError.value = getApiErrorMessage(error);

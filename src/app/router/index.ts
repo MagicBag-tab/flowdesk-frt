@@ -7,11 +7,14 @@ import RegisterCompanyView from '@/features/auth/views/RegisterCompanyView.vue';
 import InventoryView from '@/features/inventory/views/InventoryView.vue';
 import SuperAdminView from '@/features/roles/views/SuperAdminView.vue';
 import { appStore } from '@/stores/app.store';
+import { resolveHomeByRole } from '@/utils/roles';
+
 
 declare module 'vue-router' {
   interface RouteMeta {
     guestOnly?: boolean;
     requiresAuth?: boolean;
+    requiresRole?: string;
     title?: string;
   }
 }
@@ -74,6 +77,7 @@ const routes: RouteRecordRaw[] = [
     name: 'superAdmin',
     component: SuperAdminView,
     meta: {
+      //requiresAuth: true, roles: ['superAdmin'],
       title: 'SuperAdmin',
     },
   },
@@ -88,6 +92,13 @@ const router = createRouter({
   routes,
 });
 
+//comprobación que se tenga el rol correcto 
+function hasRequiredRole(userRole: string | null, requiredRoles: string[]): boolean {
+  if (!userRole) return false;
+  return requiredRoles.includes(userRole);
+}
+
+
 router.beforeEach((to) => {
   const isAuthenticated = appStore.isAuthenticated.value;
 
@@ -101,7 +112,11 @@ router.beforeEach((to) => {
   // }
 
   if (to.meta.guestOnly && isAuthenticated) {
-    return { name: 'inventory' };
+    return resolveHomeByRole(role);
+  }
+
+  if (to.meta.requiresRole && !hasRequiredRole(role, to.meta.requiresRole)){
+    return resolveHomeByRole(role);
   }
 
   return true;
