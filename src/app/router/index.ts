@@ -101,6 +101,7 @@ function hasRequiredRole(userRole: string | null, requiredRoles: string[]): bool
 
 router.beforeEach((to) => {
   const isAuthenticated = appStore.isAuthenticated.value;
+  const role = appStore.roleName.value;
 
   // if (to.meta.requiresAuth && !isAuthenticated) {
   //   return {
