@@ -57,7 +57,7 @@
 
 <script setup lang="ts">
 import { fetchInventoryProducts } from '@/features/inventory/api';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import type { InventoryProduct } from '@/features/inventory/types';
 
 onMounted(() => {
@@ -71,6 +71,29 @@ onMounted(() => {
 });
 
 const productos = ref<InventoryProduct[]>([]);
+
+const filtroEstado = ref('todos' as 'todos' | 'activos' | 'inactivos');
+const filtroStock = ref('todos' as 'todos' | 'bajo');
+
+const productosFiltrados = computed(() => {
+  return productos.value.filter(producto => 
+     {
+      if (filtroEstado.value === 'activos') {
+      return producto.is_active;
+    } else if (filtroEstado.value === 'inactivos') {
+      return !producto.is_active;
+    }
+    return true;
+     }
+  ).filter(producto => {
+    if (filtroStock.value === 'todos') {
+      return true;
+    } else if (filtroStock.value === 'bajo') {
+      return producto.cantidad <= producto.stockMinimo;
+    }
+    return true;
+  });
+});
 
 function onImportarExcel(): void {
   alert('Funcionalidad de importación próximamente.');
