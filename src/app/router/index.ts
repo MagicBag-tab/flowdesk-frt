@@ -8,6 +8,7 @@ import InventoryView from '@/features/inventory/views/InventoryView.vue';
 import SuperAdminView from '@/features/roles/views/SuperAdminView.vue';
 import { appStore } from '@/stores/app.store';
 import { resolveHomeByRole } from '@/utils/roles';
+import InventoryMovementView from '@/features/inventorymovement/views/InventoryMovementView.vue';
 
 
 declare module 'vue-router' {
@@ -64,6 +65,14 @@ const routes: RouteRecordRaw[] = [
         meta: {
           title: "Inventario",
         },
+      },
+      {
+        path: "inventorymovement",
+        name: "inventorymovement",
+        component: InventoryMovementView,
+        meta: {
+          title: "Movimiento de Inventario",
+        }
       }
       //Se agregan nuevas features al menú principal aquí, como movimiento, análisis, clientes, etc.
     ]

@@ -49,6 +49,17 @@ const navItems = [
             <path d="M8 21h8M12 17v4"/>
           </svg>`,
   },
+  {
+    name: 'inventorymovement',
+    label: 'Movimiento de Inventario',
+    to: { name: 'inventorymovement' },
+    icon: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16v16H4z"/>
+            <path d="M8 2v4M16 2v4M8 18v4M16 18v4M2 8h4M2 16h4M18 8h4M18 16h4"/>
+          </svg>`,
+  }
 ];
 
 const iconLogout = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
@@ -73,7 +84,7 @@ async function cerrarSesion(): Promise<void> {
 }
 
 .sidebar {
-  width: 220px;
+  width: 280px;
   flex-shrink: 0;
   background: var(--color-structure-base);
   display: flex;

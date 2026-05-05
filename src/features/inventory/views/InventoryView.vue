@@ -241,13 +241,14 @@ function onImportarExcel(): void {
 
 .inventory-table thead tr {
   border-bottom: 2px solid #e8eef6;
+  background: var(--color-structure-base);
 }
 
 .inventory-table th {
   padding: 14px 20px;
   text-align: left;
   font-weight: 700;
-  color: var(--color-structure-base);
+  color:#f0f4f9;
   font-size: 0.85rem;
 }
 
