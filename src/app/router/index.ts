@@ -3,6 +3,7 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import AuthLayout from '@/app/layouts/AuthLayout.vue';
 import MainLayout from '@/app/layouts/MainLayout.vue';
 import LoginView from '@/features/auth/views/LoginView.vue';
+import ForgotPasswordView from '@/features/auth/views/ForgotPasswordView.vue';
 import RegisterCompanyView from '@/features/auth/views/RegisterCompanyView.vue';
 import InventoryView from '@/features/inventory/views/InventoryView.vue';
 import SuperAdminView from '@/features/roles/views/SuperAdminView.vue';
@@ -48,6 +49,14 @@ const routes: RouteRecordRaw[] = [
           title: 'Registrar Empresa',
         },
       },
+      {
+        path: 'forgot-password',
+        name: 'forgot-password',
+        component: ForgotPasswordView,
+        meta: {
+          title: 'Recuperar Contraseña',
+        },
+      },
     ],
   },
   {
@@ -73,22 +82,22 @@ const routes: RouteRecordRaw[] = [
         meta: {
           title: "Movimiento de Inventario",
         }
-      }
+      },
+      {
+        path: '/superAdmin',
+        name: 'superAdmin',
+        component: SuperAdminView,
+        meta: {
+          //requiresAuth: true, roles: ['superAdmin'],
+          title: 'SuperAdmin',
+        },
+      },
       //Se agregan nuevas features al menú principal aquí, como movimiento, análisis, clientes, etc.
     ]
   },
   {
     path: '/:pathMatch(.*)*',
     redirect: { name: 'login' },
-  },
-  {
-    path: '/superAdmin',
-    name: 'superAdmin',
-    component: SuperAdminView,
-    meta: {
-      //requiresAuth: true, roles: ['superAdmin'],
-      title: 'SuperAdmin',
-    },
   },
   {
     path: '/:pathMatch(.*)*',

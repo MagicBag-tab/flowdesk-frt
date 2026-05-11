@@ -2,7 +2,6 @@
   <div class="superAdmin-page">
     <div class="page-header-bar">
       <h1 class="page-title">Manejo de cuentas</h1>
-      <button class="btn-logout" type="button" @click="cerrarSesion">Cerrar sesión</button>
     </div>
 
     <div class="filter">
@@ -67,11 +66,6 @@ const usuarios = ref([
   { id: 3, nombre: 'Usuario 3', email: 'usuario3@empresa.com', rol: 'empleado' },
   { id: 4, nombre: 'Usuario 4', email: 'usuario4@empresa.com', rol: 'admin' },
 ]);
-
-async function cerrarSesion(): Promise<void> {
-  appStore.clearSession();
-  await router.push({ name: 'login' });
-}
 </script>
 
 <style scoped>

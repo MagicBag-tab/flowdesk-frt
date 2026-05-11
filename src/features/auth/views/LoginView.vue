@@ -45,7 +45,10 @@
       </button>
     </form>
 
-    <RouterLink class="auth-link" to="/register">Registrar empresa</RouterLink>
+    <div class="extra-links">
+      <RouterLink class="auth-link" to="/register">Registrar empresa</RouterLink>
+      <RouterLink class="auth-link" to="/forgot-password">¿Olvidaste tu contraseña?</RouterLink>
+    </div>
   </section>
 </template>
 
@@ -146,3 +149,11 @@ async function submitLogin(): Promise<void> {
   }
 }
 </script>
+<style scoped>
+  .extra-links {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+</style>
