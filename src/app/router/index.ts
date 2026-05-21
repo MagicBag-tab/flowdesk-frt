@@ -148,14 +148,14 @@ router.beforeEach((to) => {
   const isAuthenticated = appStore.isAuthenticated.value;
   const role = appStore.roleName.value;
 
-  // if (to.meta.requiresAuth && !isAuthenticated) {
-  //   return {
-  //     name: 'login',
-  //     query: typeof to.fullPath === 'string' && to.fullPath !== '/login'
-  //       ? { redirect: to.fullPath }
-  //       : {},
-  //   };
-  // }
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    return {
+      name: 'login',
+      query: typeof to.fullPath === 'string' && to.fullPath !== '/login'
+        ? { redirect: to.fullPath }
+        : {},
+    };
+  }
 
   if (to.meta.guestOnly && isAuthenticated) {
     return resolveHomeByRole(role);

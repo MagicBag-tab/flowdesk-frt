@@ -97,12 +97,7 @@ const successMessage = ref('');
 onMounted(() => {
   const raw = route.query.token;
   token.value = typeof raw === 'string' && raw.trim() ? raw.trim() : null;
-
   tokenState.value = token.value ? 'valid' : 'invalid'
-
-  // TODO: reemplazar por validación real contra el backend
-  // Ejemplo: await validateResetToken(token.value)
-  tokenState.value = 'valid';
 });
 
 function clearFieldError(field: keyof SetPasswordForm): void {
