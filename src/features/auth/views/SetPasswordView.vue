@@ -4,11 +4,11 @@
       <img src="../../../logo/logo-blanco.png" alt="FlowDesk Logo" class="auth-brand__logo" />
     </div>
 
-    <h3 class="auth-title">Cambiar Contraseña</h3>
+    <h3 class="auth-title">Establecer Contraseña</h3>
 
-    <!-- <div v-if="tokenState === 'invalid'" class="alert alert-error">
+    <div v-if="tokenState === 'invalid'" class="alert alert-error">
       <span>El enlace es inválido o ha expirado. Solicita uno nuevo.</span>
-    </div> -->
+    </div> 
 
     <div v-if="submitError" class="alert alert-error">
       <span>{{ submitError }}</span>
@@ -19,10 +19,9 @@
       <span>{{ successMessage }}</span>
     </div>
 
-    <!-- <form v-if= "tokenState === 'valid' && !requestSent" @submit.prevent="submitRequest"> -->
-    <form v>
+    <form v-if= "tokenState === 'valid' && !requestSent" @submit.prevent="submitRequest">
       <div class="form-group">
-        <label class="form-label" for="new-password">Nueva contraseña</label>
+        <label class="form-label" for="new-password">Ingresar contraseña</label>
         <input
           id="new-password"
           v-model="form.newPassword"
@@ -65,6 +64,7 @@
 import { reactive, ref, onMounted } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import { getApiErrorMessage } from '@/services/apiClient';
+import { setPassword } from '../api';
 
 interface SetPasswordForm {
   newPassword: string;
@@ -98,10 +98,7 @@ onMounted(() => {
   const raw = route.query.token;
   token.value = typeof raw === 'string' && raw.trim() ? raw.trim() : null;
 
-  if (!token.value) {
-    tokenState.value = 'invalid';
-    return;
-  }
+  tokenState.value = token.value ? 'valid' : 'invalid'
 
   // TODO: reemplazar por validación real contra el backend
   // Ejemplo: await validateResetToken(token.value)
@@ -143,17 +140,19 @@ async function submitRequest(): Promise<void> {
 
   if (!validate()) return;
 
+  if(!token.value){
+    tokenState.value = 'invalid';
+    return;
+  }
+
   isSubmitting.value = true;
 
   try {
-    // TODO: reemplazar con llamada real al backend
-    // await setPasswordWithToken({ token: token.value!, password: form.newPassword });
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
+    await setPassword(token.value!, form.newPassword);
     requestSent.value = true;
-    successMessage.value = '¡Contraseña establecida correctamente! Ya puedes iniciar sesión.';
+    successMessage.value = 'Contraseña establecida. Redirigiendo...';
 
-    setTimeout(() => router.push({ name: 'login' }), 2000);
+    setTimeout(() => router.push({name : 'welcome'}), 2000);
   } catch (error) {
     const message = getApiErrorMessage(error);
     if (message.toLowerCase().includes('token') || message.toLowerCase().includes('expirado')) {

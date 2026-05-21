@@ -10,7 +10,9 @@ import SuperAdminView from '@/features/roles/views/SuperAdminView.vue';
 import { appStore } from '@/stores/app.store';
 import { resolveHomeByRole } from '@/utils/roles';
 import InventoryMovementView from '@/features/inventorymovement/views/InventoryMovementView.vue';
-import ChangePasswordView from '@/features/auth/views/ChangePasswordView.vue';
+import SetPasswordView from '@/features/auth/views/SetPasswordView.vue';
+import WelcomeView from '@/features/auth/views/WelcomeView.vue';
+import ResetPasswordView from '@/features/auth/views/ResetPasswordView.vue';
 
 
 declare module 'vue-router' {
@@ -55,15 +57,31 @@ const routes: RouteRecordRaw[] = [
         name: 'forgot-password',
         component: ForgotPasswordView,
         meta: {
+          title: 'Olvide Contraseña',
+        },
+      },
+      {
+        path: 'reset-password',
+        name: 'reset-password',
+        component: ResetPasswordView,
+        meta: {
           title: 'Recuperar Contraseña',
         },
       },
       {
-        path: 'change-password',
-        name: 'change-password',
-        component: ChangePasswordView,
+        path: 'set-password',
+        name: 'set-password',
+        component: SetPasswordView,
         meta: {
-          title: 'Cambiar Contraseña',
+          title: 'Establecer Contraseña',
+        },
+      },
+      {
+        path: 'welcome',
+        name: 'welcome',
+        component: WelcomeView,
+        meta: {
+          title: 'Bienvenido',
         },
       },
     ],

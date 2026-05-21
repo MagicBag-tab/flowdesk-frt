@@ -86,6 +86,12 @@ code {
   margin: 0 0 24px;
 }
 
+.auth-description {
+  color: var(--color-text-secondary);
+  text-align: center;
+  margin: 0 0 24px;
+}
+
 .alert {
   display: flex;
   align-items: center;

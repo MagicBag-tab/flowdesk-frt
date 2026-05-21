@@ -43,19 +43,19 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
 import { RouterLink } from 'vue-router';
-
+import { forgotPassword } from '@/features/auth/api';
 import { getApiErrorMessage } from '@/services/apiClient';
 
 
-interface ForgetPasswordForm {
+interface ForgotPasswordForm {
     email: string;
 }
 
-const form = reactive<ForgetPasswordForm>({
+const form = reactive<ForgotPasswordForm>({
   email: '',
 });
 
-const errors = reactive<Record<keyof ForgetPasswordForm, string>>({
+const errors = reactive<Record<keyof ForgotPasswordForm, string>>({
   email: '',
 });
 
@@ -64,7 +64,7 @@ const submitError = ref('');
 const requestSent = ref(false);
 const successMessage = ref('');
 
-function clearFieldError(field: keyof ForgetPasswordForm): void {
+function clearFieldError(field: keyof ForgotPasswordForm): void {
   errors[field] = '';
   submitError.value = '';
   successMessage.value = '';
@@ -96,7 +96,7 @@ async function submitRequest(): Promise<void> {
   isSubmitting.value = true;
 
   try {
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    await forgotPassword(form.email);
     requestSent.value = true;
     successMessage.value = 'Revisa tu correo para restablecer tu contraseña.';
   } catch (error) {
