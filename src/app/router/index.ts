@@ -107,6 +107,8 @@ const routes: RouteRecordRaw[] = [
         name: "inventorymovement",
         component: InventoryMovementView,
         meta: {
+          requiresAuth: true, 
+          requiresRole: ['superadmin', 'admin'],
           title: "Movimiento de Inventario",
         }
       },
@@ -115,7 +117,8 @@ const routes: RouteRecordRaw[] = [
         name: 'superAdmin',
         component: SuperAdminView,
         meta: {
-          //requiresAuth: true, roles: ['superAdmin'],
+          requiresAuth: true, 
+          requiresRole: ['superadmin'],
           title: 'SuperAdmin',
         },
       },
