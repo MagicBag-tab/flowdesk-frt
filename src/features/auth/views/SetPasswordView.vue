@@ -22,31 +22,65 @@
     <form v-if= "tokenState === 'valid' && !requestSent" @submit.prevent="submitRequest">
       <div class="form-group">
         <label class="form-label" for="new-password">Ingresar contraseña</label>
-        <input
-          id="new-password"
-          v-model="form.newPassword"
-          type="password"
-          class="form-input"
-          :class="{ 'input-error': errors.newPassword }"
-          placeholder="Mínimo 6 caracteres"
-          maxlength="20"
-          @input="clearFieldError('newPassword')"
-        />
+        <div class="input-password-wrapper">
+          <input
+            id="password"
+            v-model="form.newPassword"
+            :type="showPassword ? 'text' : 'password'"
+            class="form-input"
+            :class="{ 'input-error': errors.newPassword }"
+            placeholder="Mínimo 6 caracteres"
+            maxlength="20"
+            @input="clearFieldError('newPassword')"
+          />
+          <button
+            type="button"
+            class="input-password-toggle"
+            @click="showPassword = !showPassword"
+          >
+            <svg v-if="!showPassword" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+            <svg v-else xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+              <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+              <line x1="1" y1="1" x2="23" y2="23"/>
+            </svg>
+          </button>
+        </div>
         <span v-if="errors.newPassword" class="error-msg">{{ errors.newPassword }}</span>
       </div>
 
       <div class="form-group">
         <label class="form-label" for="confirm-password">Confirmar contraseña</label>
-        <input
-          id="confirm-password"
-          v-model="form.confirmPassword"
-          type="password"
-          class="form-input"
-          :class="{ 'input-error': errors.confirmPassword }"
-          placeholder="Repite tu contraseña"
-          maxlength="20"
-          @input="clearFieldError('confirmPassword')"
-        />
+        <div class="input-password-wrapper">
+          <input
+            id="confirm-password"
+            v-model="form.confirmPassword"
+            :type="showConfirmPassword ? 'text' : 'password'"
+            class="form-input"
+            :class="{ 'input-error': errors.confirmPassword }"
+            placeholder="Mínimo 6 caracteres"
+            maxlength="20"
+            @input="clearFieldError('confirmPassword')"
+          />
+          <button
+            type="button"
+            class="input-password-toggle"
+            @click="showConfirmPassword = !showConfirmPassword"
+          >
+            <svg v-if="!showConfirmPassword" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+            <svg v-else xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+              <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+              <line x1="1" y1="1" x2="23" y2="23"/>
+            </svg>
+          </button>
+        </div>
         <span v-if="errors.confirmPassword" class="error-msg">{{ errors.confirmPassword }}</span>
       </div>
 
@@ -72,6 +106,9 @@ interface SetPasswordForm {
 }
 
 type TokenState = 'checking' | 'valid' | 'invalid';
+
+const showPassword = ref(false)
+const showConfirmPassword = ref(false)
 
 const route  = useRoute();
 const router = useRouter();
@@ -160,3 +197,9 @@ async function submitRequest(): Promise<void> {
   }
 }
 </script>
+<style scoped>
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+</style>

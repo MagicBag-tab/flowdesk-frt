@@ -26,16 +26,33 @@
 
       <div class="form-group">
         <label class="form-label" for="password">Contraseña</label>
-        <input
-          id="password"
-          v-model="form.password"
-          type="password"
-          class="form-input"
-          :class="{ 'input-error': errors.password }"
-          placeholder="Mínimo 6 caracteres"
-          maxlength="20"
-          @input="clearFieldError('password')"
-        />
+        <div class="input-password-wrapper">
+          <input
+            id="password"
+            v-model="form.password"
+            :type="showPassword ? 'text' : 'password'"
+            class="form-input"
+            :class="{ 'input-error': errors.password }"
+            placeholder="Mínimo 6 caracteres"
+            maxlength="20"
+            @input="clearFieldError('password')"
+          />
+          <button
+            type="button"
+            class="input-password-toggle"
+            @click="showPassword = !showPassword"
+          >
+            <svg v-if="!showPassword" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+            <svg v-else xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+              <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+              <line x1="1" y1="1" x2="23" y2="23"/>
+            </svg>
+          </button>
+        </div>
         <span v-if="errors.password" class="error-msg">{{ errors.password }}</span>
       </div>
 
@@ -68,6 +85,7 @@ interface LoginErrors {
   password: string;
 }
 
+const showPassword = ref(false);
 const router = useRouter();
 const route = useRoute();
 
@@ -156,4 +174,11 @@ async function submitLogin(): Promise<void> {
     flex-direction: column;
     align-items: center;
   }
+</style>
+
+<style scoped>
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
 </style>
