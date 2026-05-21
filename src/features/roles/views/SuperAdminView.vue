@@ -2,7 +2,6 @@
   <div class="superAdmin-page">
     <div class="page-header-bar">
       <h1 class="page-title">Manejo de cuentas</h1>
-      <button class="btn-logout" type="button" @click="cerrarSesion">Cerrar sesión</button>
     </div>
 
     <div class="filter">
@@ -33,13 +32,13 @@
           class="item"
         >
           <div>
-            <div class="item-name">{{ usuario.nombre }}</div>
+            <div class="item-name">{{ usuario.username }}</div>
             <div class="item-sub">
               <span class="dot"></span>{{ usuario.email }}
             </div>
           </div>
-          <span :class="['badge', usuario.rol === 'admin' ? 'badge-admin' : 'badge-emp']">
-            {{ usuario.rol === 'admin' ? 'Admin' : 'Empleado' }}
+          <span :class="['badge', usuario.role_name === 'admin' ? 'badge-admin' : 'badge-emp']">
+            {{ usuario.role_name }}
           </span>
         </div>
       </div>
@@ -51,6 +50,7 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { appStore } from '@/stores/app.store';
+import {fetchUsers, type UserResponse} from '@/features/roles/api';
 
 
 const router = useRouter();
@@ -61,17 +61,16 @@ const negocios = ref([
     {id: 2, nombre: 'Negocio 2'},
 ]);
 
-const usuarios = ref([
-  { id: 1, nombre: 'Usuario 1', email: 'usuario1@empresa.com', rol: 'admin' },
-  { id: 2, nombre: 'Usuario 2', email: 'usuario2@empresa.com', rol: 'empleado' },
-  { id: 3, nombre: 'Usuario 3', email: 'usuario3@empresa.com', rol: 'empleado' },
-  { id: 4, nombre: 'Usuario 4', email: 'usuario4@empresa.com', rol: 'admin' },
-]);
+const usuarios = ref<UserResponse[]>([]);
 
-async function cerrarSesion(): Promise<void> {
-  appStore.clearSession();
-  await router.push({ name: 'login' });
-}
+onMounted(async () => {
+  try {
+    usuarios.value = await fetchUsers();
+  } catch (e) {
+    console.error('Error cargando usuarios:', e);
+  }
+})
+
 </script>
 
 <style scoped>

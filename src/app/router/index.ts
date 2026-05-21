@@ -3,12 +3,16 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import AuthLayout from '@/app/layouts/AuthLayout.vue';
 import MainLayout from '@/app/layouts/MainLayout.vue';
 import LoginView from '@/features/auth/views/LoginView.vue';
+import ForgotPasswordView from '@/features/auth/views/ForgotPasswordView.vue';
 import RegisterCompanyView from '@/features/auth/views/RegisterCompanyView.vue';
 import InventoryView from '@/features/inventory/views/InventoryView.vue';
 import SuperAdminView from '@/features/roles/views/SuperAdminView.vue';
 import { appStore } from '@/stores/app.store';
 import { resolveHomeByRole } from '@/utils/roles';
 import InventoryMovementView from '@/features/inventorymovement/views/InventoryMovementView.vue';
+import SetPasswordView from '@/features/auth/views/SetPasswordView.vue';
+import WelcomeView from '@/features/auth/views/WelcomeView.vue';
+import ResetPasswordView from '@/features/auth/views/ResetPasswordView.vue';
 
 
 declare module 'vue-router' {
@@ -48,6 +52,38 @@ const routes: RouteRecordRaw[] = [
           title: 'Registrar Empresa',
         },
       },
+      {
+        path: 'forgot-password',
+        name: 'forgot-password',
+        component: ForgotPasswordView,
+        meta: {
+          title: 'Olvide Contraseña',
+        },
+      },
+      {
+        path: 'reset-password',
+        name: 'reset-password',
+        component: ResetPasswordView,
+        meta: {
+          title: 'Recuperar Contraseña',
+        },
+      },
+      {
+        path: 'set-password',
+        name: 'set-password',
+        component: SetPasswordView,
+        meta: {
+          title: 'Establecer Contraseña',
+        },
+      },
+      {
+        path: 'welcome',
+        name: 'welcome',
+        component: WelcomeView,
+        meta: {
+          title: 'Bienvenido',
+        },
+      },
     ],
   },
   {
@@ -73,22 +109,22 @@ const routes: RouteRecordRaw[] = [
         meta: {
           title: "Movimiento de Inventario",
         }
-      }
+      },
+      {
+        path: '/superAdmin',
+        name: 'superAdmin',
+        component: SuperAdminView,
+        meta: {
+          //requiresAuth: true, roles: ['superAdmin'],
+          title: 'SuperAdmin',
+        },
+      },
       //Se agregan nuevas features al menú principal aquí, como movimiento, análisis, clientes, etc.
     ]
   },
   {
     path: '/:pathMatch(.*)*',
     redirect: { name: 'login' },
-  },
-  {
-    path: '/superAdmin',
-    name: 'superAdmin',
-    component: SuperAdminView,
-    meta: {
-      //requiresAuth: true, roles: ['superAdmin'],
-      title: 'SuperAdmin',
-    },
   },
   {
     path: '/:pathMatch(.*)*',
@@ -112,14 +148,14 @@ router.beforeEach((to) => {
   const isAuthenticated = appStore.isAuthenticated.value;
   const role = appStore.roleName.value;
 
-  // if (to.meta.requiresAuth && !isAuthenticated) {
-  //   return {
-  //     name: 'login',
-  //     query: typeof to.fullPath === 'string' && to.fullPath !== '/login'
-  //       ? { redirect: to.fullPath }
-  //       : {},
-  //   };
-  // }
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    return {
+      name: 'login',
+      query: typeof to.fullPath === 'string' && to.fullPath !== '/login'
+        ? { redirect: to.fullPath }
+        : {},
+    };
+  }
 
   if (to.meta.guestOnly && isAuthenticated) {
     return resolveHomeByRole(role);

@@ -86,6 +86,12 @@ code {
   margin: 0 0 24px;
 }
 
+.auth-description {
+  color: var(--color-text-secondary);
+  text-align: center;
+  margin: 0 0 24px;
+}
+
 .alert {
   display: flex;
   align-items: center;
@@ -217,4 +223,32 @@ code {
 .auth-brand__logo {
   width: 300px;
   margin-bottom: 20px;
+}
+
+.input-password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-password-wrapper .form-input {
+  padding-right: 40px;
+  width: 100%;
+}
+
+.input-password-toggle {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  margin-top: 0;
+}
+
+.input-password-toggle:hover {
+  color: var(--color-text);
 }
