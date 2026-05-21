@@ -89,7 +89,7 @@ async function cerrarSesion(): Promise<void> {
   background: var(--color-bg-app);
 }
 
-.sidebar {
+.sidebar {  
   width: 280px;
   flex-shrink: 0;
   background: var(--color-structure-base);
