@@ -113,7 +113,7 @@
         </div>
 
         <div class="filtros-footer">
-          <button class="btn-import" type="button" @click="onImportarExcel">
+          <button class="btn-import" type="button" @click="showImport = true">
             ↑ Importar Excel
           </button>
         </div>
@@ -121,6 +121,11 @@
       </aside>
     </div>
 
+    <ImportExcelModal
+      v-if="showImport"
+      @close="showImport = false"
+      @imported="onImported"
+    />
   </div>
 </template>
 
@@ -128,14 +133,20 @@
 import { fetchInventoryProducts } from '@/features/inventory/api';
 import { ref, computed, onMounted } from 'vue';
 import type { InventoryProduct } from '@/features/inventory/types';
+import ImportExcelModal from '@/features/inventory/components/ImportExcelModal.vue';
 
 const productos = ref<InventoryProduct[]>([]);
+const showImport = ref(false);
 
 onMounted(() => {
   fetchInventoryProducts()
     .then((data) => { productos.value = data; })
     .catch((error) => { console.error('Error al cargar productos:', error); });
 });
+
+async function onImported() {
+  productos.value = await fetchInventoryProducts();
+}
 
 const todasColumnas = [
   { key: 'id',          label: 'ID' },
@@ -196,9 +207,6 @@ const productosStockBajo = computed(() =>
   productos.value.filter(p => p.is_active && p.cantidad <= p.stockMinimo).length,
 );
 
-function onImportarExcel(): void {
-  alert('Funcionalidad de importación próximamente.');
-}
 </script>
 
 <style scoped>
