@@ -4,8 +4,8 @@ export type AppRole = typeof VALID_ROLES[number];
 export function resolveHomeByRole(role: string | null): string {
   switch (role) {
     case 'superadmin': return '/superAdmin';
-    case 'admin':
-    case 'manager':
+    case 'admin': return '/inventory';
+    case 'manager': return '/inventory';
     case 'employee': return '/inventory';
     default: return '/login';
   }
