@@ -14,7 +14,6 @@
 
         <div class="table-container">
           <div v-if="isLoading" class="empty-state">Cargando movimientos…</div>
-          <div v-else-if="loadError" class="empty-state" style="color:#c03a3a;">{{ loadError }}</div>
           <table v-else class="movimiento-table">
             <thead>
               <tr>
@@ -43,8 +42,11 @@
                 </td>
                 <td v-if="columnasVisibles.motivo" class="td-motivo">{{ mov.motivo ?? '—' }}</td>
               </tr>
-              <tr v-if="movimientosFiltrados.length === 0 && !isLoading">
-                <td :colspan="columnaCount" class="empty-state">No hay movimientos para los filtros seleccionados.</td>
+              <tr v-if="loadError">
+                <td :colspan="columnaCount" class="empty-state empty-state--error">{{ loadError }}</td>
+              </tr>
+              <tr v-else-if="movimientosFiltrados.length === 0">
+                <td :colspan="columnaCount" class="empty-state">{{ emptyStateMessage }}</td>
               </tr>
             </tbody>
           </table>
@@ -95,6 +97,7 @@ import { fetchMovements, isInbound, type InventoryMovement } from '@/features/in
 import { fetchInventoryProducts } from '@/features/inventory/api';
 import type { InventoryProduct } from '@/features/inventory/types';
 import NewMovementModal from '@/features/inventorymovement/components/NewMovementModal.vue';
+import { ApiError } from '@/services/apiClient';
 
 const movimientos = ref<InventoryMovement[]>([]);
 const products = ref<InventoryProduct[]>([]);
@@ -106,11 +109,25 @@ const successMsg = ref('');
 async function load() {
   isLoading.value = true; loadError.value = '';
   try {
-    const [movs, prods] = await Promise.all([fetchMovements(), fetchInventoryProducts()]);
-    movimientos.value = movs;
-    products.value = prods;
+    const [movementsResult, productsResult] = await Promise.allSettled([
+      fetchMovements(),
+      fetchInventoryProducts(),
+    ]);
+
+    if (movementsResult.status === 'fulfilled') {
+      movimientos.value = movementsResult.value;
+    } else if (movementsResult.reason instanceof ApiError && movementsResult.reason.status === 404) {
+      movimientos.value = [];
+    } else {
+      throw movementsResult.reason;
+    }
+
+    if (productsResult.status === 'fulfilled') {
+      products.value = productsResult.value;
+    }
   } catch {
     loadError.value = 'No se pudieron cargar los movimientos.';
+    movimientos.value = [];
   } finally {
     isLoading.value = false;
   }
@@ -147,7 +164,7 @@ const columnasVisibles = ref<Record<ColumnaKey, boolean>>({
   id: true, fecha: true, producto: true, tipo: true, cantidad: true, motivo: true,
 });
 function toggleColumna(key: ColumnaKey) { columnasVisibles.value[key] = !columnasVisibles.value[key]; }
-const columnaCount = computed(() => Object.values(columnasVisibles.value).filter(Boolean).length);
+const columnaCount = computed(() => Math.max(1, Object.values(columnasVisibles.value).filter(Boolean).length));
 
 const filtroTipo = ref<'todos' | 'entrada' | 'salida'>('todos');
 const filtroFechaDesde = ref('');
@@ -166,6 +183,16 @@ const movimientosFiltrados = computed(() => movimientos.value.filter(m => {
   if (filtroFechaHasta.value && f > filtroFechaHasta.value) return false;
   return true;
 }));
+
+const hasActiveFilters = computed(() =>
+  filtroTipo.value !== 'todos' || Boolean(filtroFechaDesde.value) || Boolean(filtroFechaHasta.value),
+);
+
+const emptyStateMessage = computed(() =>
+  movimientos.value.length === 0 && !hasActiveFilters.value
+    ? 'No hay movimientos registrados.'
+    : 'No hay movimientos para los filtros seleccionados.',
+);
 
 function limpiarFiltros() {
   filtroTipo.value = 'todos';
@@ -325,6 +352,10 @@ function limpiarFiltros() {
   padding: 48px 0;
   color: var(--color-text-muted);
   font-size: .88rem;
+}
+
+.empty-state--error {
+  color: #c03a3a;
 }
 
 .filtros-panel {
