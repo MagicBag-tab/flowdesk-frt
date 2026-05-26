@@ -1,12 +1,21 @@
 <template>
   <div class="movimiento-page">
     <div class="content-container">
-
       <div class="table-section">
-        <h1 class="page-title">Movimiento de Inventario</h1>
+        <div class="section-header">
+          <h1 class="page-title">Movimiento de Inventario</h1>
+          <button class="btn-add" type="button" @click="showNewMovement = true">+ Nuevo movimiento</button>
+        </div>
+
+        <div v-if="successMsg" class="alert alert-success" style="margin-bottom:14px;">
+          <span>{{ successMsg }}</span>
+          <button class="alert-close" type="button" @click="successMsg = ''">✕</button>
+        </div>
 
         <div class="table-container">
-          <table class="movimiento-table">
+          <div v-if="isLoading" class="empty-state">Cargando movimientos…</div>
+          <div v-else-if="loadError" class="empty-state" style="color:#c03a3a;">{{ loadError }}</div>
+          <table v-else class="movimiento-table">
             <thead>
               <tr>
                 <th v-if="columnasVisibles.id">ID</th>
@@ -14,30 +23,28 @@
                 <th v-if="columnasVisibles.producto">Producto</th>
                 <th v-if="columnasVisibles.tipo">Tipo</th>
                 <th v-if="columnasVisibles.cantidad">Cantidad</th>
-                <th v-if="columnasVisibles.usuario">Usuario</th>
                 <th v-if="columnasVisibles.motivo">Motivo</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="mov in movimientosFiltrados" :key="mov.id">
-                <td v-if="columnasVisibles.id" class="td-id">{{ mov.id }}</td>
+                <td v-if="columnasVisibles.id" class="td-id">{{ mov.id.slice(0,8).toUpperCase() }}</td>
                 <td v-if="columnasVisibles.fecha" class="td-fecha">{{ formatFecha(mov.fecha) }}</td>
-                <td v-if="columnasVisibles.producto">{{ mov.producto }}</td>
+                <td v-if="columnasVisibles.producto">{{ getProductName(mov.producto_id) }}</td>
                 <td v-if="columnasVisibles.tipo">
-                  <span class="tipo-badge" :class="mov.tipo === 'Entrada' ? 'tipo-badge--entrada' : 'tipo-badge--salida'">{{ mov.tipo }}</span>
-                </td>
-                <td v-if="columnasVisibles.cantidad">
-                  <span class="cantidad-num" :class="mov.tipo === 'Entrada' ? 'cantidad-num--entrada' : 'cantidad-num--salida'">
-                    {{ mov.tipo === 'Entrada' ? '+' : '-' }}{{ mov.cantidad }}
+                  <span class="tipo-badge" :class="isInbound(mov.tipo_movimiento) ? 'tipo-badge--entrada' : 'tipo-badge--salida'">
+                    {{ isInbound(mov.tipo_movimiento) ? 'Entrada' : 'Salida' }}
                   </span>
                 </td>
-                <td v-if="columnasVisibles.usuario">{{ mov.usuario }}</td>
-                <td v-if="columnasVisibles.motivo" class="td-motivo">{{ mov.motivo }}</td>
-              </tr>
-              <tr v-if="movimientosFiltrados.length === 0">
-                <td :colspan="columnaCount" class="empty-state">
-                  No hay movimientos para los filtros seleccionados.
+                <td v-if="columnasVisibles.cantidad">
+                  <span class="cantidad-num" :class="isInbound(mov.tipo_movimiento) ? 'cantidad-num--entrada' : 'cantidad-num--salida'">
+                    {{ isInbound(mov.tipo_movimiento) ? '+' : '-' }}{{ mov.cantidad }}
+                  </span>
                 </td>
+                <td v-if="columnasVisibles.motivo" class="td-motivo">{{ mov.motivo ?? '—' }}</td>
+              </tr>
+              <tr v-if="movimientosFiltrados.length === 0 && !isLoading">
+                <td :colspan="columnaCount" class="empty-state">No hay movimientos para los filtros seleccionados.</td>
               </tr>
             </tbody>
           </table>
@@ -46,7 +53,6 @@
 
       <aside class="filtros-panel">
         <p class="filtros-titulo">Filtros</p>
-
         <p class="filtros-sub">columnas visibles</p>
         <ul class="filtros-list">
           <li v-for="col in todasColumnas" :key="col.key" @click="toggleColumna(col.key)">
@@ -56,134 +62,113 @@
             {{ col.label }}
           </li>
         </ul>
-
         <div class="filtros-divider" />
-
-        <p class="filtros-sub">Tipo de movimiento</p>
+        <p class="filtros-sub">Tipo</p>
         <div class="filtros-chips">
-          <button
-            v-for="op in opcionesTipo"
-            :key="op.value"
-            class="chip"
-            :class="{ 'chip--active': filtroTipo === op.value }"
-            @click="filtroTipo = op.value"
-          >
+          <button v-for="op in opcionesTipo" :key="op.value" class="chip"
+            :class="{ 'chip--active': filtroTipo === op.value }" @click="filtroTipo = op.value">
             {{ op.label }}
           </button>
         </div>
-
         <div class="filtros-divider" />
-
-        <p class="filtros-sub">Producto</p>
-        <select class="filtro-select" v-model="filtroProducto">
-          <option value="">Todos</option>
-          <option v-for="p in productosUnicos" :key="p" :value="p">{{ p }}</option>
-        </select>
-
-        <div class="filtros-divider" />
-
         <p class="filtros-sub">Rango de fechas</p>
         <div class="fecha-inputs">
           <input type="date" class="filtro-input-fecha" v-model="filtroFechaDesde" />
           <input type="date" class="filtro-input-fecha" v-model="filtroFechaHasta" />
         </div>
-
         <button class="btn-limpiar" @click="limpiarFiltros">Limpiar filtros</button>
       </aside>
-
     </div>
+
+    <NewMovementModal
+      v-if="showNewMovement"
+      :products="products"
+      @close="showNewMovement = false"
+      @created="onMovementCreated"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { fetchMovements, isInbound, type InventoryMovement } from '@/features/inventorymovement/api';
+import { fetchInventoryProducts } from '@/features/inventory/api';
+import type { InventoryProduct } from '@/features/inventory/types';
+import NewMovementModal from '@/features/inventorymovement/components/NewMovementModal.vue';
 
-interface Movimiento {
-  id: string;
-  fecha: string;
-  producto: string;
-  tipo: 'Entrada' | 'Salida';
-  cantidad: number;
-  usuario: string;
-  motivo: string;
+const movimientos = ref<InventoryMovement[]>([]);
+const products = ref<InventoryProduct[]>([]);
+const isLoading = ref(false);
+const loadError = ref('');
+const showNewMovement = ref(false);
+const successMsg = ref('');
+
+async function load() {
+  isLoading.value = true; loadError.value = '';
+  try {
+    const [movs, prods] = await Promise.all([fetchMovements(), fetchInventoryProducts()]);
+    movimientos.value = movs;
+    products.value = prods;
+  } catch {
+    loadError.value = 'No se pudieron cargar los movimientos.';
+  } finally {
+    isLoading.value = false;
+  }
 }
 
-const movimientos = ref<Movimiento[]>([
-  { id: 'M001', fecha: '2025-05-01', producto: 'Terra Lab',     tipo: 'Entrada', cantidad: 50,  usuario: 'admin@empresa.com', motivo: 'Compra a proveedor' },
-  { id: 'M002', fecha: '2025-05-02', producto: 'Topo Gigio',    tipo: 'Salida',  cantidad: 10,  usuario: 'emp1@empresa.com',  motivo: 'Venta al cliente #204' },
-  { id: 'M003', fecha: '2025-05-03', producto: 'Versa 24',      tipo: 'Salida',  cantidad: 5,   usuario: 'emp2@empresa.com',  motivo: 'Producto dañado dado de baja' },
-  { id: 'M004', fecha: '2025-05-04', producto: 'Purple Lexus',  tipo: 'Entrada', cantidad: 200, usuario: 'admin@empresa.com', motivo: 'Reabastecimiento mensual' },
-  { id: 'M005', fecha: '2025-05-05', producto: 'Tallo 278',     tipo: 'Salida',  cantidad: 8,   usuario: 'emp1@empresa.com',  motivo: 'Venta al cliente #310' },
-  { id: 'M006', fecha: '2025-05-06', producto: 'Nuevo Blanco',  tipo: 'Entrada', cantidad: 30,  usuario: 'admin@empresa.com', motivo: 'Compra urgente' },
-  { id: 'M007', fecha: '2025-05-07', producto: 'Terra Lab',     tipo: 'Salida',  cantidad: 12,  usuario: 'emp2@empresa.com',  motivo: 'Ajuste de inventario' },
-  { id: 'M008', fecha: '2025-05-08', producto: 'Topo Gigio',    tipo: 'Entrada', cantidad: 40,  usuario: 'admin@empresa.com', motivo: 'Compra a proveedor' },
-  { id: 'M009', fecha: '2025-05-09', producto: 'Versa 24',      tipo: 'Entrada', cantidad: 15,  usuario: 'admin@empresa.com', motivo: 'Reabastecimiento' },
-  { id: 'M010', fecha: '2025-05-10', producto: 'Purple Lexus',  tipo: 'Salida',  cantidad: 25,  usuario: 'emp1@empresa.com',  motivo: 'Venta al cliente #412' },
-]);
+onMounted(load);
+
+async function onMovementCreated() {
+  successMsg.value = 'Movimiento registrado correctamente.';
+  await load();
+  setTimeout(() => { successMsg.value = ''; }, 5000);
+}
+
+function getProductName(id: string) {
+  return products.value.find(p => p.id === id)?.nombre ?? id.slice(0, 8) + '…';
+}
+
+function formatFecha(iso: string) {
+  const d = new Date(iso);
+  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+}
 
 const todasColumnas = [
-  { key: 'id',       label: 'ID' },
-  { key: 'fecha',    label: 'Fecha' },
+  { key: 'id', label: 'ID' },
+  { key: 'fecha', label: 'Fecha' },
   { key: 'producto', label: 'Producto' },
-  { key: 'tipo',     label: 'Tipo' },
+  { key: 'tipo', label: 'Tipo' },
   { key: 'cantidad', label: 'Cantidad' },
-  { key: 'usuario',  label: 'Usuario' },
-  { key: 'motivo',   label: 'Motivo' },
+  { key: 'motivo', label: 'Motivo' },
 ] as const;
 
 type ColumnaKey = (typeof todasColumnas)[number]['key'];
-
 const columnasVisibles = ref<Record<ColumnaKey, boolean>>({
-  id:       true,
-  fecha:    true,
-  producto: true,
-  tipo:     true,
-  cantidad: true,
-  usuario:  true,
-  motivo:   true,
+  id: true, fecha: true, producto: true, tipo: true, cantidad: true, motivo: true,
 });
+function toggleColumna(key: ColumnaKey) { columnasVisibles.value[key] = !columnasVisibles.value[key]; }
+const columnaCount = computed(() => Object.values(columnasVisibles.value).filter(Boolean).length);
 
-function toggleColumna(key: ColumnaKey): void {
-  columnasVisibles.value[key] = !columnasVisibles.value[key];
-}
-
-const columnaCount = computed(() =>
-  Object.values(columnasVisibles.value).filter(Boolean).length,
-);
-
-const filtroTipo     = ref<'todos' | 'Entrada' | 'Salida'>('todos');
-const filtroProducto = ref('');
+const filtroTipo = ref<'todos' | 'entrada' | 'salida'>('todos');
 const filtroFechaDesde = ref('');
 const filtroFechaHasta = ref('');
-
 const opcionesTipo = [
-  { value: 'todos'   as const, label: 'Todos' },
-  { value: 'Entrada' as const, label: 'Entrada' },
-  { value: 'Salida'  as const, label: 'Salida' },
+  { value: 'todos' as const, label: 'Todos' },
+  { value: 'entrada' as const, label: 'Entrada' },
+  { value: 'salida' as const, label: 'Salida' },
 ];
 
-const productosUnicos = computed(() =>
-  [...new Set(movimientos.value.map(m => m.producto))].sort(),
-);
+const movimientosFiltrados = computed(() => movimientos.value.filter(m => {
+  if (filtroTipo.value === 'entrada' && !isInbound(m.tipo_movimiento)) return false;
+  if (filtroTipo.value === 'salida' && isInbound(m.tipo_movimiento)) return false;
+  const f = m.fecha.slice(0, 10);
+  if (filtroFechaDesde.value && f < filtroFechaDesde.value) return false;
+  if (filtroFechaHasta.value && f > filtroFechaHasta.value) return false;
+  return true;
+}));
 
-const movimientosFiltrados = computed(() => {
-  return movimientos.value.filter(m => {
-    if (filtroTipo.value !== 'todos' && m.tipo !== filtroTipo.value) return false;
-    if (filtroProducto.value && m.producto !== filtroProducto.value) return false;
-    if (filtroFechaDesde.value && m.fecha < filtroFechaDesde.value) return false;
-    if (filtroFechaHasta.value && m.fecha > filtroFechaHasta.value) return false;
-    return true;
-  });
-});
-
-function formatFecha(fecha: string): string {
-  const [y, m, d] = fecha.split('-');
-  return `${d}/${m}/${y}`;
-}
-
-function limpiarFiltros(): void {
+function limpiarFiltros() {
   filtroTipo.value = 'todos';
-  filtroProducto.value = '';
   filtroFechaDesde.value = '';
   filtroFechaHasta.value = '';
 }
@@ -208,11 +193,35 @@ function limpiarFiltros(): void {
   min-width: 0;
 }
 
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
 .page-title {
   font-size: 2rem;
   font-weight: 700;
-  margin: 0 0 20px;
+  margin: 0;
   color: var(--color-text);
+}
+
+.btn-add {
+  padding: 9px 18px;
+  background: var(--color-structure-base);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: .875rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: filter .14s;
+}
+
+.btn-add:hover {
+  filter: brightness(1.2);
 }
 
 .table-container {
@@ -225,7 +234,7 @@ function limpiarFiltros(): void {
 .movimiento-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.875rem;
+  font-size: .875rem;
 }
 
 .movimiento-table thead tr {
@@ -238,12 +247,12 @@ function limpiarFiltros(): void {
   text-align: left;
   font-weight: 700;
   color: #f0f4f9;
-  font-size: 0.85rem;
+  font-size: .85rem;
 }
 
 .movimiento-table tbody tr {
   border-bottom: 1px solid #f0f4f9;
-  transition: background 0.12s;
+  transition: background .12s;
 }
 
 .movimiento-table tbody tr:last-child {
@@ -261,19 +270,20 @@ function limpiarFiltros(): void {
 }
 
 .td-id {
-  font-size: 0.8rem;
+  font-size: .78rem;
   color: var(--color-text-muted);
   font-weight: 600;
+  font-family: monospace;
 }
 
 .td-fecha {
   white-space: nowrap;
-  font-size: 0.82rem;
+  font-size: .82rem;
   color: var(--color-text-muted);
 }
 
 .td-motivo {
-  font-size: 0.82rem;
+  font-size: .82rem;
   color: var(--color-text-muted);
   max-width: 220px;
 }
@@ -281,12 +291,10 @@ function limpiarFiltros(): void {
 .tipo-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
   padding: 3px 10px;
   border-radius: 99px;
-  font-size: 0.78rem;
+  font-size: .78rem;
   font-weight: 700;
-  white-space: nowrap;
 }
 
 .tipo-badge--entrada {
@@ -301,17 +309,22 @@ function limpiarFiltros(): void {
 
 .cantidad-num {
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: .9rem;
 }
 
-.cantidad-num--entrada { color: #2e7d32; }
-.cantidad-num--salida  { color: #e65100; }
+.cantidad-num--entrada {
+  color: #2e7d32;
+}
+
+.cantidad-num--salida {
+  color: #e65100;
+}
 
 .empty-state {
   text-align: center;
   padding: 48px 0;
   color: var(--color-text-muted);
-  font-size: 0.88rem;
+  font-size: .88rem;
 }
 
 .filtros-panel {
@@ -320,23 +333,22 @@ function limpiarFiltros(): void {
   display: flex;
   flex-direction: column;
   padding-top: 4px;
-  gap: 0;
 }
 
 .filtros-titulo {
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: .95rem;
   color: var(--color-text);
   margin: 0 0 12px;
 }
 
 .filtros-sub {
-  font-size: 0.72rem;
+  font-size: .72rem;
   font-weight: 600;
   color: var(--color-text-muted);
   margin: 0 0 8px;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: .04em;
 }
 
 .filtros-divider {
@@ -357,14 +369,14 @@ function limpiarFiltros(): void {
   padding: 4px 2px;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 0.83rem;
+  font-size: .83rem;
   color: var(--color-text-secondary);
-  transition: background 0.12s;
+  transition: background .12s;
   user-select: none;
 }
 
 .filtros-list li:hover {
-  background: rgba(0, 0, 0, 0.04);
+  background: rgba(0, 0, 0, .04);
 }
 
 .checkbox {
@@ -377,7 +389,7 @@ function limpiarFiltros(): void {
   justify-content: center;
   flex-shrink: 0;
   background: #fff;
-  transition: all 0.14s;
+  transition: all .14s;
 }
 
 .checkbox.checked {
@@ -386,7 +398,7 @@ function limpiarFiltros(): void {
 }
 
 .checkbox__check {
-  font-size: 0.6rem;
+  font-size: .6rem;
   color: #fff;
   line-height: 1;
 }
@@ -403,17 +415,17 @@ function limpiarFiltros(): void {
   border: 1.5px solid #dde3ec;
   background: transparent;
   color: var(--color-text-secondary);
-  font-size: 0.8rem;
+  font-size: .8rem;
   font-weight: 500;
   cursor: pointer;
   text-align: left;
-  transition: all 0.13s;
+  transition: all .13s;
   font-family: var(--font-sans);
 }
 
 .chip:hover {
   border-color: #b0bbd4;
-  background: rgba(0, 0, 0, 0.04);
+  background: rgba(0, 0, 0, .04);
 }
 
 .chip--active {
@@ -421,24 +433,6 @@ function limpiarFiltros(): void {
   border-color: var(--color-structure-base);
   color: #fff;
   font-weight: 600;
-}
-
-.filtro-select {
-  width: 100%;
-  padding: 7px 10px;
-  border: 1.5px solid #dde3ec;
-  border-radius: 8px;
-  font-size: 0.83rem;
-  color: var(--color-text-secondary);
-  background: #fff;
-  outline: none;
-  font-family: var(--font-sans);
-  cursor: pointer;
-  transition: border 0.13s;
-}
-
-.filtro-select:focus {
-  border-color: var(--color-structure-base);
 }
 
 .fecha-inputs {
@@ -452,12 +446,12 @@ function limpiarFiltros(): void {
   padding: 7px 10px;
   border: 1.5px solid #dde3ec;
   border-radius: 8px;
-  font-size: 0.82rem;
+  font-size: .82rem;
   color: var(--color-text-secondary);
   background: #fff;
   outline: none;
   font-family: var(--font-sans);
-  transition: border 0.13s;
+  transition: border .13s;
 }
 
 .filtro-input-fecha:focus {
@@ -472,11 +466,11 @@ function limpiarFiltros(): void {
   border: 1.5px solid #dde3ec;
   border-radius: 8px;
   color: var(--color-text-muted);
-  font-size: 0.82rem;
+  font-size: .82rem;
   font-weight: 600;
   cursor: pointer;
   font-family: var(--font-sans);
-  transition: all 0.14s;
+  transition: all .14s;
 }
 
 .btn-limpiar:hover {
@@ -489,6 +483,7 @@ function limpiarFiltros(): void {
   .content-container {
     flex-direction: column;
   }
+
   .filtros-panel {
     width: 100%;
   }
