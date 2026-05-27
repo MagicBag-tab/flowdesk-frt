@@ -71,8 +71,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { fetchUsers, type UserResponse } from '@/features/roles/api';
-import AddEmployeeModal from '@/features/roles/components/AddEmployeeModal.vue';
+import { fetchEmployees, type UserResponse } from '@/features/employees/api';
+import AddEmployeeModal from '@/features/employees/components/AddEmployeeModal.vue';
 
 const empleados = ref<UserResponse[]>([]);
 const isLoading = ref(false);
@@ -87,7 +87,7 @@ async function loadEmpleados() {
   isLoading.value = true;
   loadError.value = '';
   try {
-    empleados.value = await fetchUsers();
+    empleados.value = await fetchEmployees();
   } catch {
     loadError.value = 'No se pudieron cargar los empleados. Intenta de nuevo.';
   } finally {

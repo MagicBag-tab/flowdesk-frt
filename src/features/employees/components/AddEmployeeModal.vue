@@ -57,7 +57,7 @@
 
 <script setup lang="ts">
 import { reactive, ref, onMounted } from 'vue';
-import { createEmployee, fetchRoles } from '@/features/roles/employees';
+import { createEmployee, fetchRoles } from '@/features/employees/api';
 import { getApiErrorMessage } from '@/services/apiClient';
 
 const emit = defineEmits<{ close: []; created: [] }>();

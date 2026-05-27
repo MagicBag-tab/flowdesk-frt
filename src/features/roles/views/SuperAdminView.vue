@@ -2,14 +2,6 @@
   <div class="superAdmin-page">
     <div class="page-header-bar">
       <h1 class="page-title">Manejo de cuentas</h1>
-      <button v-if="active === 'usuarios'" class="btn-add" type="button" @click="showAddModal = true">
-        + Agregar cuenta
-      </button>
-    </div>
-
-    <div v-if="successMsg" class="alert alert-success" style="margin-bottom:16px;">
-      <span>{{ successMsg }}</span>
-      <button class="alert-close" type="button" @click="successMsg = ''">✕</button>
     </div>
 
     <div class="filter">
@@ -63,18 +55,14 @@
       </div>
     </div>
 
-    <AddEmployeeModal v-if="showAddModal" @close="showAddModal = false" @created="onEmployeeCreated" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { fetchUsers, type UserResponse } from '@/features/roles/api';
-import AddEmployeeModal from '@/features/roles/components/AddEmployeeModal.vue';
+import { fetchEmployees, type UserResponse } from '@/features/employees/api';
 
 const active = ref<'negocios' | 'usuarios'>('negocios');
-const showAddModal = ref(false);
-const successMsg = ref('');
 const negocios = ref([{ id: 1, nombre: 'Negocio 1' }, { id: 2, nombre: 'Negocio 2' }]);
 const usuarios = ref<UserResponse[]>([]);
 const isLoading = ref(false);
@@ -82,18 +70,12 @@ const loadError = ref('');
 
 async function loadUsers() {
   isLoading.value = true; loadError.value = '';
-  try { usuarios.value = await fetchUsers(); }
+  try { usuarios.value = await fetchEmployees(); }
   catch { loadError.value = 'No se pudieron cargar los empleados.'; }
   finally { isLoading.value = false; }
 }
 
 onMounted(loadUsers);
-
-async function onEmployeeCreated() {
-  successMsg.value = 'Empleado creado. Se envió un correo de invitación.';
-  await loadUsers();
-  setTimeout(() => { successMsg.value = ''; }, 5000);
-}
 
 function roleBadgeClass(role: string) {
   if (role === 'admin') return 'role-badge--admin';
@@ -125,23 +107,6 @@ function roleBadgeClass(role: string) {
   font-weight: 700;
   color: var(--color-structure-base);
   margin: 0;
-}
-
-.btn-add {
-  padding: 9px 18px;
-  background: var(--color-structure-base);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: .875rem;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: var(--font-sans);
-  transition: filter .14s;
-}
-
-.btn-add:hover {
-  filter: brightness(1.2);
 }
 
 .filter {
