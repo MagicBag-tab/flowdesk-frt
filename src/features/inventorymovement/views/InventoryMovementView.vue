@@ -92,7 +92,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { fetchMovements, isInbound, type InventoryMovement } from '@/features/inventorymovement/api';
 import { fetchInventoryProducts } from '@/features/inventory/api';
 import type { InventoryProduct } from '@/features/inventory/types';
@@ -160,20 +160,83 @@ const todasColumnas = [
 ] as const;
 
 type ColumnaKey = (typeof todasColumnas)[number]['key'];
-const columnasVisibles = ref<Record<ColumnaKey, boolean>>({
-  id: true, fecha: true, producto: true, tipo: true, cantidad: true, motivo: true,
-});
+type FiltroTipo = 'todos' | 'entrada' | 'salida';
+
+interface MovementFiltersState {
+  columnasVisibles?: Partial<Record<ColumnaKey, boolean>>;
+  filtroTipo?: FiltroTipo;
+  filtroFechaDesde?: string;
+  filtroFechaHasta?: string;
+}
+
+const MOVEMENT_FILTERS_STORAGE_KEY = 'flowdesk.inventoryMovements.filters';
+const DEFAULT_COLUMNAS_VISIBLES: Record<ColumnaKey, boolean> = {
+  id: false,
+  fecha: true,
+  producto: true,
+  tipo: true,
+  cantidad: true,
+  motivo: true,
+};
+
+function isFiltroTipo(value: unknown): value is FiltroTipo {
+  return value === 'todos' || value === 'entrada' || value === 'salida';
+}
+
+function isDateFilter(value: unknown): value is string {
+  return typeof value === 'string' && (/^\d{4}-\d{2}-\d{2}$/.test(value) || value === '');
+}
+
+function loadSavedFilters(): MovementFiltersState {
+  try {
+    const saved = localStorage.getItem(MOVEMENT_FILTERS_STORAGE_KEY);
+    if (!saved) return {};
+    const parsed = JSON.parse(saved) as Partial<MovementFiltersState>;
+    return typeof parsed === 'object' && parsed !== null ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function getSavedColumns(savedColumns?: Partial<Record<ColumnaKey, boolean>>): Record<ColumnaKey, boolean> {
+  const columns = { ...DEFAULT_COLUMNAS_VISIBLES };
+  if (!savedColumns) return columns;
+
+  todasColumnas.forEach(({ key }) => {
+    if (typeof savedColumns[key] === 'boolean') {
+      columns[key] = savedColumns[key];
+    }
+  });
+
+  return columns;
+}
+
+const savedFilters = loadSavedFilters();
+const columnasVisibles = ref<Record<ColumnaKey, boolean>>(getSavedColumns(savedFilters.columnasVisibles));
 function toggleColumna(key: ColumnaKey) { columnasVisibles.value[key] = !columnasVisibles.value[key]; }
 const columnaCount = computed(() => Math.max(1, Object.values(columnasVisibles.value).filter(Boolean).length));
 
-const filtroTipo = ref<'todos' | 'entrada' | 'salida'>('todos');
-const filtroFechaDesde = ref('');
-const filtroFechaHasta = ref('');
+const filtroTipo = ref<FiltroTipo>(isFiltroTipo(savedFilters.filtroTipo) ? savedFilters.filtroTipo : 'todos');
+const filtroFechaDesde = ref(isDateFilter(savedFilters.filtroFechaDesde) ? savedFilters.filtroFechaDesde : '');
+const filtroFechaHasta = ref(isDateFilter(savedFilters.filtroFechaHasta) ? savedFilters.filtroFechaHasta : '');
 const opcionesTipo = [
   { value: 'todos' as const, label: 'Todos' },
   { value: 'entrada' as const, label: 'Entrada' },
   { value: 'salida' as const, label: 'Salida' },
 ];
+
+watch(
+  () => ({
+    columnasVisibles: columnasVisibles.value,
+    filtroTipo: filtroTipo.value,
+    filtroFechaDesde: filtroFechaDesde.value,
+    filtroFechaHasta: filtroFechaHasta.value,
+  }),
+  (filters) => {
+    localStorage.setItem(MOVEMENT_FILTERS_STORAGE_KEY, JSON.stringify(filters));
+  },
+  { deep: true },
+);
 
 const movimientosFiltrados = computed(() => movimientos.value.filter(m => {
   if (filtroTipo.value === 'entrada' && !isInbound(m.tipo_movimiento)) return false;

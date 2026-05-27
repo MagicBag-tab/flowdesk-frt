@@ -34,13 +34,13 @@
                   {{ producto.nombre }}
                   <span v-if="!producto.is_active" class="badge badge--inactive">Inactivo</span>
                 </td>
-                <td v-if="columnasVisibles.precio">Q{{ producto.precio.toFixed(2) }}</td>
+                <td v-if="columnasVisibles.precio">Q{{ formatPrice(producto.precio) }}</td>
                 <td v-if="columnasVisibles.cantidad">
                   <span
                     class="cantidad-badge"
                     :class="{ 'cantidad-badge--low': producto.is_active && producto.cantidad <= producto.stockMinimo }"
                   >
-                    {{ producto.cantidad }}
+                    {{ formatQuantity(producto.cantidad) }}
                   </span>
                 </td>
                 <td v-if="columnasVisibles.descripcion">{{ producto.descripcion }}</td>
@@ -133,7 +133,7 @@
 
 <script setup lang="ts">
 import { fetchInventoryProducts } from '@/features/inventory/api';
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import type { InventoryProduct } from '@/features/inventory/types';
 import ImportExcelModal from '@/features/inventory/components/ImportExcelModal.vue';
 import { getApiErrorMessage } from '@/services/apiClient';
@@ -158,7 +158,15 @@ async function loadProductos() {
 onMounted(loadProductos);
 
 async function onImported() {
-  productos.value = await fetchInventoryProducts();
+  await loadProductos();
+}
+
+function formatPrice(value: number): string {
+  return Number.isFinite(value) ? value.toFixed(2) : '0.00';
+}
+
+function formatQuantity(value: number): string {
+  return Number.isFinite(value) ? String(value) : '0';
 }
 
 const todasColumnas = [
@@ -171,26 +179,70 @@ const todasColumnas = [
 ] as const;
 
 type ColumnaKey = (typeof todasColumnas)[number]['key'];
+type FiltroEstado = 'todos' | 'activos' | 'inactivos';
+type FiltroStock = 'todos' | 'bajo';
 
-const columnasVisibles = ref<Record<ColumnaKey, boolean>>({
-  id:          true,
+interface InventoryFiltersState {
+  columnasVisibles?: Partial<Record<ColumnaKey, boolean>>;
+  filtroEstado?: FiltroEstado;
+  filtroStock?: FiltroStock;
+}
+
+const INVENTORY_FILTERS_STORAGE_KEY = 'flowdesk.inventory.filters';
+const DEFAULT_COLUMNAS_VISIBLES: Record<ColumnaKey, boolean> = {
+  id:          false,
   nombre:      true,
   precio:      true,
   cantidad:    true,
   descripcion: false,
   proveedor:   false,
-});
+};
+
+function isFiltroEstado(value: unknown): value is FiltroEstado {
+  return value === 'todos' || value === 'activos' || value === 'inactivos';
+}
+
+function isFiltroStock(value: unknown): value is FiltroStock {
+  return value === 'todos' || value === 'bajo';
+}
+
+function loadSavedFilters(): InventoryFiltersState {
+  try {
+    const saved = localStorage.getItem(INVENTORY_FILTERS_STORAGE_KEY);
+    if (!saved) return {};
+    const parsed = JSON.parse(saved) as Partial<InventoryFiltersState>;
+    return typeof parsed === 'object' && parsed !== null ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function getSavedColumns(savedColumns?: Partial<Record<ColumnaKey, boolean>>): Record<ColumnaKey, boolean> {
+  const columns = { ...DEFAULT_COLUMNAS_VISIBLES };
+  if (!savedColumns) return columns;
+
+  todasColumnas.forEach(({ key }) => {
+    if (typeof savedColumns[key] === 'boolean') {
+      columns[key] = savedColumns[key];
+    }
+  });
+
+  return columns;
+}
+
+const savedFilters = loadSavedFilters();
+const columnasVisibles = ref<Record<ColumnaKey, boolean>>(getSavedColumns(savedFilters.columnasVisibles));
 
 function toggleColumna(key: ColumnaKey): void {
   columnasVisibles.value[key] = !columnasVisibles.value[key];
 }
 
 const columnaCount = computed(() =>
-  Object.values(columnasVisibles.value).filter(Boolean).length,
+  Math.max(1, Object.values(columnasVisibles.value).filter(Boolean).length),
 );
 
-const filtroEstado = ref<'todos' | 'activos' | 'inactivos'>('todos');
-const filtroStock  = ref<'todos' | 'bajo'>('todos');
+const filtroEstado = ref<FiltroEstado>(isFiltroEstado(savedFilters.filtroEstado) ? savedFilters.filtroEstado : 'todos');
+const filtroStock  = ref<FiltroStock>(isFiltroStock(savedFilters.filtroStock) ? savedFilters.filtroStock : 'todos');
 
 const opcionesEstado = [
   { value: 'todos'     as const, label: 'Todos' },
@@ -202,6 +254,18 @@ const opcionesStock = [
   { value: 'todos' as const, label: 'Todos' },
   { value: 'bajo'  as const, label: 'Stock bajo' },
 ];
+
+watch(
+  () => ({
+    columnasVisibles: columnasVisibles.value,
+    filtroEstado: filtroEstado.value,
+    filtroStock: filtroStock.value,
+  }),
+  (filters) => {
+    localStorage.setItem(INVENTORY_FILTERS_STORAGE_KEY, JSON.stringify(filters));
+  },
+  { deep: true },
+);
 
 const productosFiltrados = computed(() => {
   return productos.value

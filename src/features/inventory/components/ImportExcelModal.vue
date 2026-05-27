@@ -11,7 +11,8 @@
         <div v-if="step === 'upload'">
           <p class="upload-hint">
             Sube un archivo <strong>.xlsx</strong> con columnas:
-            <code>sku, nombre, descripcion, precio_venta, stock_minimo, unidad_medida, proveedor_id</code>
+            <code>sku, nombre, descripcion, precio_venta, stock_minimo, unidad_medida, proveedor_id</code>.
+            <span><code>proveedor_id</code> debe ser un UUID existente, no el nombre del proveedor.</span>
           </p>
           <div class="dropzone" :class="{ 'dropzone--over': isDragging, 'dropzone--error': !!fileError }"
             @dragenter.prevent="isDragging = true" @dragleave.prevent="isDragging = false"
