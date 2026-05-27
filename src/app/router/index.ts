@@ -13,6 +13,8 @@ import InventoryMovementView from '@/features/inventorymovement/views/InventoryM
 import SetPasswordView from '@/features/auth/views/SetPasswordView.vue';
 import WelcomeView from '@/features/auth/views/WelcomeView.vue';
 import ResetPasswordView from '@/features/auth/views/ResetPasswordView.vue';
+import AnalyticsView from '@/features/analytics/views/AnalyticsView.vue';
+import EmployeesView from '@/features/employees/views/EmployeeView.vue';
 import LandingPageView from '@/features/landingPage/LandingPageView.vue';
 
 
@@ -105,6 +107,8 @@ const routes: RouteRecordRaw[] = [
         name: "inventory",
         component: InventoryView,
         meta: {
+          requiresAuth: true,
+          requiresRole: ['admin', 'manager', 'employee'],
           title: "Inventario",
         },
       },
@@ -114,6 +118,7 @@ const routes: RouteRecordRaw[] = [
         component: InventoryMovementView,
         meta: {
           requiresAuth: true, 
+          requiresRole: ['admin'],
           // requiresRole: ['superadmin', 'admin'],
           title: "Movimiento de Inventario",
         }
@@ -126,6 +131,26 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true, 
           requiresRole: ['superadmin'],
           title: 'SuperAdmin',
+        },
+      },
+      {
+        path: 'analytics',
+        name: 'analytics',
+        component: AnalyticsView,
+        meta: {
+          requiresAuth: true,
+          requiresRole: ['admin', 'manager'],
+          title: 'Análisis',
+        },
+      },
+      {
+        path: 'employees',
+        name: 'employees',
+        component: EmployeesView,
+        meta: {
+          requiresAuth: true,
+          requiresRole: ['admin'],
+          title: 'Empleados',
         },
       },
       //Se agregan nuevas features al menú principal aquí, como movimiento, análisis, clientes, etc.

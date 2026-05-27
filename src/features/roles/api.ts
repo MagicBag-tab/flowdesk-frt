@@ -1,19 +1,30 @@
-import {apiClient} from '../../services/apiClient';
+import { apiClient } from '@/services/apiClient';
 
-export interface UserResponse{
-    id: string;
-    username: string;
-    email: string;
-    role_id: number;
-    role_name: string;
-    company_id: string | null;
-    is_active: boolean;
-    created_at: string;
+export interface CompanyResponse {
+  id: string;
+  name: string;
+  schema_name: string;
+  is_active: boolean;
+  created_at: string;
 }
 
-export function fetchUsers(): Promise<UserResponse[]> {
-    return apiClient.request<UserResponse[]>('/api/v1/users', {
-        method: 'GET',
-        auth: true,
-    });
+export interface CreateCompanyPayload {
+  name: string;
+  admin_email: string;
+  admin_username: string;
+}
+
+export function fetchCompanies(): Promise<CompanyResponse[]> {
+  return apiClient.request<CompanyResponse[]>('/api/v1/companies', {
+    method: 'GET',
+    auth: true,
+  });
+}
+
+export function createCompany(payload: CreateCompanyPayload): Promise<CompanyResponse> {
+  return apiClient.request<CompanyResponse>('/api/v1/auth/register', {
+    method: 'POST',
+    auth: true,
+    body: payload,
+  });
 }

@@ -6,20 +6,30 @@ export const handler: Handler = async (event) => {
   const path = event.path.replace('/.netlify/functions/proxy', '');
   const url = `${API_BASE}${path}`;
 
-  const response = await fetch(url, {
-    method: event.httpMethod,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(event.headers.authorization ? { Authorization: event.headers.authorization } : {}),
-    },
-    body: event.body ?? undefined,
-  });
+  const authHeader = event.headers.authorization || event.headers.Authorization;
 
-  const data = await response.text();
+  try {
+    const response = await fetch(url, {
+      method: event.httpMethod,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(authHeader ? { Authorization: authHeader } : {}),
+      },
+      body: ['GET', 'HEAD'].includes(event.httpMethod) ? undefined : (event.body ?? undefined),
+    });
 
-  return {
-    statusCode: response.status,
-    headers: { 'Content-Type': 'application/json' },
-    body: data,
-  };
+    const data = await response.text();
+
+    return {
+      statusCode: response.status,
+      headers: { 'Content-Type': 'application/json' },
+      body: data,
+    };
+  } catch (error) {
+    return {
+      statusCode: 502,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ detail: String(error) }),
+    };
+  }
 };
