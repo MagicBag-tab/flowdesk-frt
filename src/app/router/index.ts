@@ -13,6 +13,7 @@ import InventoryMovementView from '@/features/inventorymovement/views/InventoryM
 import SetPasswordView from '@/features/auth/views/SetPasswordView.vue';
 import WelcomeView from '@/features/auth/views/WelcomeView.vue';
 import ResetPasswordView from '@/features/auth/views/ResetPasswordView.vue';
+import LandingPageView from '@/features/landingPage/LandingPageView.vue';
 
 
 declare module 'vue-router' {
@@ -27,7 +28,12 @@ declare module 'vue-router' {
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
-    redirect: { name: 'login' },
+    name: 'landing',
+    component: LandingPageView,
+    meta: {
+      guestOnly: true,
+      title: 'FlowDesk',
+    },
   },
   {
     path: '/',
@@ -108,7 +114,7 @@ const routes: RouteRecordRaw[] = [
         component: InventoryMovementView,
         meta: {
           requiresAuth: true, 
-          requiresRole: ['superadmin', 'admin'],
+          // requiresRole: ['superadmin', 'admin'],
           title: "Movimiento de Inventario",
         }
       },
