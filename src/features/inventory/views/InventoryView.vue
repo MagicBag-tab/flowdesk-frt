@@ -7,6 +7,8 @@
         <h1 class="page-title">Inventario</h1>
 
         <div class="table-container">
+          <div v-if="isLoading" class="empty-state">Cargando productos...</div>
+          <div v-else-if="loadError" class="empty-state" style="color: var(--color-accent)">{{ loadError }}</div>
           <table class="inventory-table">
             <thead>
               <tr>
@@ -134,15 +136,26 @@ import { fetchInventoryProducts } from '@/features/inventory/api';
 import { ref, computed, onMounted } from 'vue';
 import type { InventoryProduct } from '@/features/inventory/types';
 import ImportExcelModal from '@/features/inventory/components/ImportExcelModal.vue';
+import { getApiErrorMessage } from '@/services/apiClient';
 
 const productos = ref<InventoryProduct[]>([]);
+const isLoading = ref(false);
+const loadError = ref('');
 const showImport = ref(false);
 
-onMounted(() => {
-  fetchInventoryProducts()
-    .then((data) => { productos.value = data; })
-    .catch((error) => { console.error('Error al cargar productos:', error); });
-});
+async function loadProductos() {
+  isLoading.value = true;
+  loadError.value = '';
+  try {
+    productos.value = await fetchInventoryProducts();
+  } catch (err) {
+    loadError.value = getApiErrorMessage(err);
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+onMounted(loadProductos);
 
 async function onImported() {
   productos.value = await fetchInventoryProducts();

@@ -45,7 +45,7 @@ const navItems = [
     name: 'inventory',
     label: 'Inventario',
     to: { name: 'inventory' },
-    roles: ['admin', 'manager', 'superadmin', 'employee'],
+    roles: ['admin', 'manager', 'employee'],
     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
             fill="none" stroke="currentColor" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
@@ -57,7 +57,7 @@ const navItems = [
     name: 'inventorymovement',
     label: 'Movimiento de Inventario',
     to: { name: 'inventorymovement' },
-    roles: ['admin', 'manager', 'superadmin', 'employee'],
+    roles: ['admin', 'manager', 'employee'],
     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
             fill="none" stroke="currentColor" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
@@ -76,7 +76,7 @@ const navItems = [
     name: 'analytics',
     label: 'Análisis',
     to: { name: 'analytics' },
-    roles: ['superadmin', 'admin', 'manager'],
+    roles: ['admin', 'manager'],
     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
             fill="none" stroke="currentColor" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
@@ -89,7 +89,7 @@ const navItems = [
     name: 'employees',
     label: 'Empleados',
     to: { name: 'employees' },
-    roles: ['admin', 'manager', 'superadmin'],
+    roles: ['admin', 'manager'],
     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
             fill="none" stroke="currentColor" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">

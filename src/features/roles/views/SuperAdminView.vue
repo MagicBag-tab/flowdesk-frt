@@ -2,26 +2,47 @@
   <div class="superAdmin-page">
     <div class="page-header-bar">
       <h1 class="page-title">Manejo de cuentas</h1>
+      <button class="btn-add" type="button" @click="showCreateCompanyModal = true">
+        + Crear empresa
+      </button>
+    </div>
+
+    <div v-if="successMsg" class="alert alert-success" style="margin-bottom:16px;">
+      <span>{{ successMsg }}</span>
+      <button class="alert-close" type="button" @click="successMsg = ''">x</button>
     </div>
 
     <div class="filter">
-      <button :class="['btn', active === 'negocios' ? 'activo' : '']" @click="active = 'negocios'">Negocios</button>
-      <button :class="['btn', active === 'usuarios' ? 'activo' : '']" @click="active = 'usuarios'">Usuarios</button>
+      <button :class="['btn', active === 'negocios' ? 'activo' : '']" @click="setActiveTab('negocios')">Negocios</button>
+      <button :class="['btn', active === 'usuarios' ? 'activo' : '']" @click="setActiveTab('usuarios')">Usuarios</button>
     </div>
 
     <div class="display">
       <div v-if="active === 'negocios'" class="list">
-        <p class="section-label">{{ negocios.length }} negocios registrados</p>
+        <p class="section-label">
+          {{ negocios.length }}
+          {{ negocios.length === 1 ? 'negocio registrado' : 'negocios registrados' }}
+        </p>
+        <div v-if="negocios.length === 0" class="empty-businesses">
+          No hay empresas creadas en esta sesion.
+        </div>
         <div v-for="negocio in negocios" :key="negocio.id" class="item">
-          <div class="item-name">{{ negocio.nombre }}</div>
-          <span class="arrow">&gt;</span>
+          <div>
+            <div class="item-name">{{ negocio.name }}</div>
+            <div class="item-meta">{{ negocio.schema_name }}</div>
+          </div>
+          <span :class="['business-status', negocio.is_active ? 'business-status--active' : 'business-status--inactive']">
+            {{ negocio.is_active ? 'Activa' : 'Inactiva' }}
+          </span>
         </div>
       </div>
 
       <div v-if="active === 'usuarios'">
-        <p class="section-label">{{ usuarios.length }} usuarios registrados</p>
+        <p class="section-label">
+          {{ activeUsersCount }} usuarios activos de {{ usuarios.length }} registrados
+        </p>
         <div class="table-container">
-          <div v-if="isLoading" class="table-empty">Cargando empleados…</div>
+          <div v-if="isLoading" class="table-empty">Cargando usuarios...</div>
           <div v-else-if="loadError" class="table-empty table-empty--error">{{ loadError }}</div>
           <table v-else class="emp-table">
             <thead>
@@ -47,39 +68,101 @@
                 </td>
               </tr>
               <tr v-if="usuarios.length === 0">
-                <td colspan="4" class="table-empty">No hay empleados registrados.</td>
+                <td colspan="4" class="table-empty">
+                  No hay usuarios para mostrar.
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
+
     </div>
 
+    <CreateCompanyModal
+      v-if="showCreateCompanyModal"
+      @close="showCreateCompanyModal = false"
+      @created="onCompanyCreated"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { computed, ref } from 'vue';
 import { fetchEmployees, type UserResponse } from '@/features/employees/api';
+import { type CompanyResponse } from '@/features/roles/api';
+import CreateCompanyModal from '@/features/roles/components/CreateCompanyModal.vue';
+import { ApiError, getApiErrorMessage } from '@/services/apiClient';
 
+const SESSION_COMPANIES_KEY = 'flowdesk.createdCompanies';
 const active = ref<'negocios' | 'usuarios'>('negocios');
-const negocios = ref([{ id: 1, nombre: 'Negocio 1' }, { id: 2, nombre: 'Negocio 2' }]);
+const negocios = ref<CompanyResponse[]>(loadSessionCompanies());
 const usuarios = ref<UserResponse[]>([]);
 const isLoading = ref(false);
 const loadError = ref('');
+const hasLoadedUsers = ref(false);
+const showCreateCompanyModal = ref(false);
+const successMsg = ref('');
+const activeUsersCount = computed(() => usuarios.value.filter(user => user.is_active).length);
 
-async function loadUsers() {
-  isLoading.value = true; loadError.value = '';
-  try { usuarios.value = await fetchEmployees(); }
-  catch { loadError.value = 'No se pudieron cargar los empleados.'; }
-  finally { isLoading.value = false; }
+function loadSessionCompanies(): CompanyResponse[] {
+  try {
+    const savedCompanies = sessionStorage.getItem(SESSION_COMPANIES_KEY);
+    if (!savedCompanies) return [];
+
+    const parsedCompanies = JSON.parse(savedCompanies) as unknown;
+    return Array.isArray(parsedCompanies) ? parsedCompanies as CompanyResponse[] : [];
+  } catch {
+    return [];
+  }
 }
 
-onMounted(loadUsers);
+function persistSessionCompanies(): void {
+  sessionStorage.setItem(SESSION_COMPANIES_KEY, JSON.stringify(negocios.value));
+}
 
-function roleBadgeClass(role: string) {
+async function setActiveTab(tab: 'negocios' | 'usuarios'): Promise<void> {
+  active.value = tab;
+
+  if (tab === 'usuarios' && !hasLoadedUsers.value && !isLoading.value) {
+    await loadUsers();
+  }
+}
+
+async function loadUsers(): Promise<void> {
+  isLoading.value = true;
+  loadError.value = '';
+
+  try {
+    usuarios.value = await fetchEmployees();
+    hasLoadedUsers.value = true;
+  } catch (error) {
+    loadError.value = error instanceof ApiError && error.status >= 500
+      ? 'No se pudieron cargar los usuarios. El endpoint de usuarios aun no esta disponible para superadmin.'
+      : getApiErrorMessage(error);
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+function onCompanyCreated(company: CompanyResponse): void {
+  const existingIndex = negocios.value.findIndex(negocio => negocio.id === company.id);
+
+  if (existingIndex >= 0) {
+    negocios.value.splice(existingIndex, 1, company);
+  } else {
+    negocios.value.unshift(company);
+  }
+
+  persistSessionCompanies();
+  successMsg.value = 'Empresa creada. Se envio el correo de invitacion al administrador.';
+  setTimeout(() => { successMsg.value = ''; }, 5000);
+}
+
+function roleBadgeClass(role: string): string {
   if (role === 'admin') return 'role-badge--admin';
   if (role === 'manager') return 'role-badge--manager';
+  if (role === 'superadmin') return 'role-badge--superadmin';
   return 'role-badge--emp';
 }
 </script>
@@ -107,6 +190,23 @@ function roleBadgeClass(role: string) {
   font-weight: 700;
   color: var(--color-structure-base);
   margin: 0;
+}
+
+.btn-add {
+  padding: 9px 18px;
+  background: var(--color-structure-base);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: .875rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: filter .14s;
+}
+
+.btn-add:hover {
+  filter: brightness(1.2);
 }
 
 .filter {
@@ -149,6 +249,16 @@ function roleBadgeClass(role: string) {
   gap: 8px;
 }
 
+.empty-businesses {
+  padding: 40px;
+  background: var(--color-bg-surface);
+  border: 1.5px solid var(--color-structure-subtle);
+  border-radius: 10px;
+  color: var(--color-text-muted);
+  font-size: .88rem;
+  text-align: center;
+}
+
 .item {
   display: flex;
   align-items: center;
@@ -172,10 +282,30 @@ function roleBadgeClass(role: string) {
   color: var(--color-structure-base);
 }
 
-.arrow {
+.item-meta {
+  margin-top: 4px;
   color: var(--color-text-muted);
-  font-size: 1.1rem;
+  font-family: monospace;
+  font-size: .78rem;
+}
+
+.business-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-size: .75rem;
   font-weight: 700;
+}
+
+.business-status--active {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.business-status--inactive {
+  background: #f0f4f9;
+  color: var(--color-text-muted);
 }
 
 .table-container {
@@ -252,6 +382,7 @@ function roleBadgeClass(role: string) {
   text-transform: capitalize;
 }
 
+.role-badge--superadmin,
 .role-badge--admin {
   background: var(--color-structure-subtle);
   color: var(--color-structure-hover);
@@ -300,4 +431,5 @@ function roleBadgeClass(role: string) {
 .status-dot-wrap--inactive .status-dot {
   background: #b0bbd4;
 }
+
 </style>

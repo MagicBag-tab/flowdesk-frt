@@ -73,6 +73,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { fetchEmployees, type UserResponse } from '@/features/employees/api';
 import AddEmployeeModal from '@/features/employees/components/AddEmployeeModal.vue';
+import { getApiErrorMessage } from '@/services/apiClient';
 
 const empleados = ref<UserResponse[]>([]);
 const isLoading = ref(false);
@@ -88,8 +89,8 @@ async function loadEmpleados() {
   loadError.value = '';
   try {
     empleados.value = await fetchEmployees();
-  } catch {
-    loadError.value = 'No se pudieron cargar los empleados. Intenta de nuevo.';
+  } catch (err) {
+    loadError.value = getApiErrorMessage(err);
   } finally {
     isLoading.value = false;
   }
