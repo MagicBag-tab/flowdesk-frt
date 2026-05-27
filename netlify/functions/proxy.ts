@@ -3,21 +3,17 @@ import type { Handler } from '@netlify/functions';
 const API_BASE = 'http://3.235.13.20';
 
 export const handler: Handler = async (event) => {
-  console.log('Event path:', event.path);
-  console.log('Event httpMethod:', event.httpMethod);
   const path = event.path.replace('/.netlify/functions/proxy', '');
   const url = `${API_BASE}${path}`;
 
-  console.log('Proxying to:', url);
+  const authHeader = event.headers.authorization || event.headers.Authorization;
 
   try {
     const response = await fetch(url, {
       method: event.httpMethod,
       headers: {
         'Content-Type': 'application/json',
-        ...(event.headers.authorization
-          ? { Authorization: event.headers.authorization }
-          : {}),
+        ...(authHeader ? { Authorization: authHeader } : {}),
       },
       body: ['GET', 'HEAD'].includes(event.httpMethod) ? undefined : (event.body ?? undefined),
     });
@@ -30,7 +26,6 @@ export const handler: Handler = async (event) => {
       body: data,
     };
   } catch (error) {
-    console.log('Proxy error:', error);
     return {
       statusCode: 502,
       headers: { 'Content-Type': 'application/json' },
