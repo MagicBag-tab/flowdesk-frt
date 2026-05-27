@@ -3,7 +3,7 @@
     <div class="page-header-bar">
       <h1 class="page-title">Manejo de cuentas</h1>
       <button v-if="active === 'usuarios'" class="btn-add" type="button" @click="showAddModal = true">
-        + Agregar empleado
+        + Agregar cuenta
       </button>
     </div>
 
@@ -14,7 +14,7 @@
 
     <div class="filter">
       <button :class="['btn', active === 'negocios' ? 'activo' : '']" @click="active = 'negocios'">Negocios</button>
-      <button :class="['btn', active === 'usuarios' ? 'activo' : '']" @click="active = 'usuarios'">Empleados</button>
+      <button :class="['btn', active === 'usuarios' ? 'activo' : '']" @click="active = 'usuarios'">Usuarios</button>
     </div>
 
     <div class="display">
@@ -27,7 +27,7 @@
       </div>
 
       <div v-if="active === 'usuarios'">
-        <p class="section-label">{{ usuarios.length }} empleados registrados</p>
+        <p class="section-label">{{ usuarios.length }} usuarios registrados</p>
         <div class="table-container">
           <div v-if="isLoading" class="table-empty">Cargando empleados…</div>
           <div v-else-if="loadError" class="table-empty table-empty--error">{{ loadError }}</div>

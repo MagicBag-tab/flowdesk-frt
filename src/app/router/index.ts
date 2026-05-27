@@ -13,7 +13,8 @@ import InventoryMovementView from '@/features/inventorymovement/views/InventoryM
 import SetPasswordView from '@/features/auth/views/SetPasswordView.vue';
 import WelcomeView from '@/features/auth/views/WelcomeView.vue';
 import ResetPasswordView from '@/features/auth/views/ResetPasswordView.vue';
-
+import AnalyticsView from '@/features/analytics/views/AnalyticsView.vue';
+import EmployeesView from '@/features/employees/views/EmployeeView.vue';
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -120,6 +121,26 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true, 
           requiresRole: ['superadmin'],
           title: 'SuperAdmin',
+        },
+      },
+      {
+        path: 'analytics',
+        name: 'analytics',
+        component: AnalyticsView,
+        meta: {
+          requiresAuth: true,
+          requiresRole: ['superadmin', 'admin', 'manager'],
+          title: 'Análisis',
+        },
+      },
+      {
+        path: 'employees',
+        name: 'employees',
+        component: EmployeesView,
+        meta: {
+          requiresAuth: true,
+          requiresRole: ['superadmin', 'admin'],
+          title: 'Empleados',
         },
       },
       //Se agregan nuevas features al menú principal aquí, como movimiento, análisis, clientes, etc.
