@@ -16,6 +16,11 @@ const products = [
     id: "1",
     nombre: "Producto A",
     cantidad: 10,
+    descripcion: "Producto de prueba",
+    precio: 100,
+    stockMinimo: 5,
+    proveedor: null,
+    is_active: true,
   },
 ];
 
