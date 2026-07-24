@@ -1,0 +1,105 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { mount } from "@vue/test-utils";
+import { nextTick } from "vue";
+
+import InventoryMovementView from "@/features/inventorymovement/views/InventoryMovementView.vue";
+
+vi.mock("@/features/inventorymovement/api", () => ({
+  fetchMovements: vi.fn().mockResolvedValue([]),
+  isInbound: vi.fn(() => true),
+}));
+
+vi.mock("@/features/inventory/api", () => ({
+  fetchInventoryProducts: vi.fn().mockResolvedValue([]),
+}));
+
+vi.mock("@/services/apiClient", () => ({
+  ApiError: class extends Error {
+    status = 404;
+  },
+}));
+
+vi.mock(
+  "@/features/inventorymovement/components/NewMovementModal.vue",
+  () => ({
+    default: {
+      name: "NewMovementModal",
+      template: "<div data-testid='new-movement-modal'></div>",
+    },
+  })
+);
+
+function createWrapper() {
+  return mount(InventoryMovementView);
+}
+
+describe("InventoryMovementView", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.clearAllMocks();
+  });
+
+  it("renderiza correctamente la vista", async () => {
+    const wrapper = createWrapper();
+
+    await nextTick();
+
+    expect(wrapper.text()).toContain("Movimiento de Inventario");
+    expect(wrapper.text()).toContain("Nuevo movimiento");
+    expect(wrapper.text()).toContain("Filtros");
+  });
+
+  it("muestra el estado de carga inicialmente", () => {
+    const wrapper = createWrapper();
+
+    expect(wrapper.text()).toContain("Cargando movimientos");
+  });
+
+  it("abre el modal de nuevo movimiento", async () => {
+    const wrapper = createWrapper();
+
+    await wrapper.find(".btn-add").trigger("click");
+
+    expect(
+      wrapper.find("[data-testid='new-movement-moda']").exists()
+    ).toBe(true);
+  });
+
+  it("permite cambiar el filtro de tipo", async () => {
+    const wrapper = createWrapper();
+
+    await nextTick();
+
+    const chips = wrapper.findAll(".chip");
+
+    await chips[1].trigger("click");
+
+    expect(chips[1].classes()).toContain("chip--active");
+  });
+
+  it("permite limpiar filtros", async () => {
+    const wrapper = createWrapper();
+
+    await nextTick();
+
+    const chips = wrapper.findAll(".chip");
+
+    await chips[1].trigger("click");
+
+    await wrapper.find(".btn-limpiar").trigger("click");
+
+    expect(chips[0].classes()).toContain("chip--active");
+  });
+
+  it("permite mostrar u ocultar columnas", async () => {
+    const wrapper = createWrapper();
+
+    await nextTick();
+
+    const columnas = wrapper.findAll(".filtros-list li");
+
+    await columnas[0].trigger("click");
+
+    expect(wrapper.find(".checkbox").exists()).toBe(true);
+  });
+});
