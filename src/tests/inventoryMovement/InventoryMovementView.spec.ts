@@ -49,10 +49,14 @@ describe("InventoryMovementView", () => {
     expect(wrapper.text()).toContain("Filtros");
   });
 
-  it("muestra el estado de carga inicialmente", () => {
+  it("muestra mensaje cuando no hay movimientos", async () => {
     const wrapper = createWrapper();
 
-    expect(wrapper.text()).toContain("Cargando movimientos");
+    await nextTick();
+    await Promise.resolve();
+    await nextTick();
+
+    expect(wrapper.text()).toContain("No hay movimientos registrados.");
   });
 
   it("abre el modal de nuevo movimiento", async () => {
@@ -61,7 +65,7 @@ describe("InventoryMovementView", () => {
     await wrapper.find(".btn-add").trigger("click");
 
     expect(
-      wrapper.find("[data-testid='new-movement-moda']").exists()
+      wrapper.find("[data-testid='new-movement-modal']").exists()
     ).toBe(true);
   });
 
