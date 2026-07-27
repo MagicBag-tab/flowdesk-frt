@@ -21,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, computed } from "vue";
+import { ref, onMounted, onBeforeUnmount, computed, type ComponentPublicInstance, } from "vue";
 import HeroCarousel1 from "../assets/HeroCarousel1.png";
 import HeroCarousel2 from "../assets/HeroCarousel2.png";
 import HeroCarousel3 from "../assets/HeroCarousel3.png";
@@ -51,8 +51,13 @@ const containerRef = ref<HTMLElement | null>(null);
 const trackRef = ref<HTMLElement | null>(null);
 const cardEls = ref<(HTMLElement | null)[]>([]);
 
-function setCardRef(el: Element | null, index: number) {
-  cardEls.value[index] = el as HTMLElement | null;
+function setCardRef( el: Element | ComponentPublicInstance | null, index: number) 
+{
+  if (el instanceof HTMLElement) {
+    cardEls.value[index] = el;
+  } else {
+    cardEls.value[index] = null;
+  }
 }
 
 // --- Config del "curveado" ---
