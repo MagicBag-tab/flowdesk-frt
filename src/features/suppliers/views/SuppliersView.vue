@@ -95,8 +95,13 @@
       </div>
     </div>
 
-    <!-- Modal Placeholder (Paso 3) -->
-    <!-- <SupplierModal v-if="showModal" ... /> -->
+    <!-- Modal (Paso 3) -->
+    <SupplierModal 
+      v-if="showModal" 
+      :supplier="supplierToEdit"
+      @close="showModal = false"
+      @saved="onModalSaved"
+    />
   </div>
 </template>
 
@@ -105,6 +110,7 @@ import { ref, onMounted } from 'vue';
 import { Search, Phone, Mail, Pencil } from 'lucide-vue-next';
 import { fetchSuppliers, toggleSupplierStatus, type Supplier } from '@/features/suppliers/api';
 import { getApiErrorMessage } from '@/services/apiClient';
+import SupplierModal from '@/features/suppliers/components/SupplierModal.vue';
 
 // Estado
 const suppliers = ref<Supplier[]>([]);
@@ -113,6 +119,10 @@ const error = ref('');
 const searchQuery = ref('');
 const statusFilter = ref('active'); // Por defecto ver activos (o 'all')
 const isToggling = ref<string | null>(null);
+
+// Variables Modal
+const showModal = ref(false);
+const supplierToEdit = ref<Supplier | null>(null);
 
 // Variables para el buscador con debounce
 let searchTimeout: ReturnType<typeof setTimeout>;
@@ -151,11 +161,18 @@ async function toggleStatus(sup: Supplier) {
 }
 
 function openCreateModal() {
-  alert('El modal de creación será implementado en el Paso 3.');
+  supplierToEdit.value = null;
+  showModal.value = true;
 }
 
 function openEditModal(sup: Supplier) {
-  alert('El modal de edición será implementado en el Paso 3.');
+  supplierToEdit.value = sup;
+  showModal.value = true;
+}
+
+function onModalSaved() {
+  showModal.value = false;
+  fetchData(); // Refrescar tabla tras guardar o editar
 }
 
 onMounted(() => {
