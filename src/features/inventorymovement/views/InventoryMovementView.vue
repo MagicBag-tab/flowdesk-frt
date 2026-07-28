@@ -3,82 +3,154 @@
     <div class="content-container">
       <div class="table-section">
         <div class="section-header">
-          <h1 class="page-title">Movimiento de Inventario</h1>
-          <button class="btn-add" type="button" @click="showNewMovement = true">+ Nuevo movimiento</button>
+          <div>
+            <h1 class="page-title">Movimiento de Inventario</h1>
+            <p class="page-subtitle">Gestiona las entradas y salidas de tus productos</p>
+          </div>
+          <button class="btn-add" type="button" @click="showNewMovement = true">
+            <span class="btn-icon">+</span> Nuevo movimiento
+          </button>
         </div>
 
-        <div v-if="successMsg" class="alert alert-success" style="margin-bottom:14px;">
+        <div v-if="successMsg" class="alert alert-success">
           <span>{{ successMsg }}</span>
           <button class="alert-close" type="button" @click="successMsg = ''">✕</button>
         </div>
 
         <div class="table-container">
-          <div v-if="isLoading" class="empty-state">Cargando movimientos…</div>
-          <table v-else class="movimiento-table">
-            <thead>
-              <tr>
-                <th v-if="columnasVisibles.id">ID</th>
-                <th v-if="columnasVisibles.fecha">Fecha</th>
-                <th v-if="columnasVisibles.producto">Producto</th>
-                <th v-if="columnasVisibles.tipo">Tipo</th>
-                <th v-if="columnasVisibles.cantidad">Cantidad</th>
-                <th v-if="columnasVisibles.motivo">Motivo</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="mov in movimientosFiltrados" :key="mov.id">
-                <td v-if="columnasVisibles.id" class="td-id">{{ mov.id.slice(0,8).toUpperCase() }}</td>
-                <td v-if="columnasVisibles.fecha" class="td-fecha">{{ formatFecha(mov.fecha) }}</td>
-                <td v-if="columnasVisibles.producto">{{ getProductName(mov.producto_id) }}</td>
-                <td v-if="columnasVisibles.tipo">
-                  <span class="tipo-badge" :class="isInbound(mov.tipo_movimiento) ? 'tipo-badge--entrada' : 'tipo-badge--salida'">
-                    {{ isInbound(mov.tipo_movimiento) ? 'Entrada' : 'Salida' }}
-                  </span>
-                </td>
-                <td v-if="columnasVisibles.cantidad">
-                  <span class="cantidad-num" :class="isInbound(mov.tipo_movimiento) ? 'cantidad-num--entrada' : 'cantidad-num--salida'">
-                    {{ isInbound(mov.tipo_movimiento) ? '+' : '-' }}{{ mov.cantidad }}
-                  </span>
-                </td>
-                <td v-if="columnasVisibles.motivo" class="td-motivo">{{ mov.motivo ?? '—' }}</td>
-              </tr>
-              <tr v-if="loadError">
-                <td :colspan="columnaCount" class="empty-state empty-state--error">{{ loadError }}</td>
-              </tr>
-              <tr v-else-if="movimientosFiltrados.length === 0">
-                <td :colspan="columnaCount" class="empty-state">{{ emptyStateMessage }}</td>
-              </tr>
-            </tbody>
-          </table>
+          <div v-if="isLoading" class="empty-state">
+            <div class="spinner"></div>
+            <p>Cargando movimientos…</p>
+          </div>
+          <div v-else>
+            <div class="table-wrapper">
+              <table class="movimiento-table">
+                <thead>
+                  <tr>
+                    <th v-if="columnasVisibles.id">ID</th>
+                    <th v-if="columnasVisibles.fecha">Fecha</th>
+                    <th v-if="columnasVisibles.producto">Producto</th>
+                    <th v-if="columnasVisibles.tipo">Tipo</th>
+                    <th v-if="columnasVisibles.cantidad">Cantidad</th>
+                    <th v-if="columnasVisibles.motivo">Motivo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="mov in movimientosPaginados" :key="mov.id">
+                    <td v-if="columnasVisibles.id" class="td-id">{{ mov.id.slice(0,8).toUpperCase() }}</td>
+                    <td v-if="columnasVisibles.fecha" class="td-fecha">{{ formatFecha(mov.fecha) }}</td>
+                    <td v-if="columnasVisibles.producto" class="td-producto">
+                      <div class="product-name">{{ getProductName(mov.producto_id) }}</div>
+                    </td>
+                    <td v-if="columnasVisibles.tipo">
+                      <span class="tipo-badge" :class="isInbound(mov.tipo_movimiento) ? 'tipo-badge--entrada' : 'tipo-badge--salida'">
+                        {{ isInbound(mov.tipo_movimiento) ? 'Entrada' : 'Salida' }}
+                      </span>
+                    </td>
+                    <td v-if="columnasVisibles.cantidad">
+                      <span class="cantidad-num" :class="isInbound(mov.tipo_movimiento) ? 'cantidad-num--entrada' : 'cantidad-num--salida'">
+                        {{ isInbound(mov.tipo_movimiento) ? '+' : '-' }}{{ mov.cantidad }}
+                      </span>
+                    </td>
+                    <td v-if="columnasVisibles.motivo" class="td-motivo">{{ mov.motivo ?? '—' }}</td>
+                  </tr>
+                  <tr v-if="loadError">
+                    <td :colspan="columnaCount" class="empty-state empty-state--error">{{ loadError }}</td>
+                  </tr>
+                  <tr v-else-if="movimientosFiltrados.length === 0">
+                    <td :colspan="columnaCount" class="empty-state">
+                      <div class="empty-icon">📦</div>
+                      <p>{{ emptyStateMessage }}</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            
+            <div class="pagination-footer" v-if="movimientosFiltrados.length > 0">
+              <span class="pagination-info">
+                Mostrando {{ startIndex + 1 }} a {{ Math.min(endIndex, movimientosFiltrados.length) }} de {{ movimientosFiltrados.length }} resultados
+              </span>
+              <div class="pagination-controls">
+                <button class="btn-page" :disabled="currentPage === 1" @click="prevPage">Anterior</button>
+                
+                <div class="page-numbers">
+                  <button v-for="page in displayedPages" :key="page" 
+                    class="btn-page-number" :class="{ 'active': page === currentPage }"
+                    @click="goToPage(page)">
+                    {{ page }}
+                  </button>
+                </div>
+
+                <button class="btn-page" :disabled="currentPage === totalPages" @click="nextPage">Siguiente</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       <aside class="filtros-panel">
-        <p class="filtros-titulo">Filtros</p>
-        <p class="filtros-sub">columnas visibles</p>
-        <ul class="filtros-list">
-          <li v-for="col in todasColumnas" :key="col.key" @click="toggleColumna(col.key)">
-            <span class="checkbox" :class="{ checked: columnasVisibles[col.key] }">
-              <span v-if="columnasVisibles[col.key]" class="checkbox__check">✓</span>
-            </span>
-            {{ col.label }}
-          </li>
-        </ul>
-        <div class="filtros-divider" />
-        <p class="filtros-sub">Tipo</p>
-        <div class="filtros-chips">
-          <button v-for="op in opcionesTipo" :key="op.value" class="chip"
-            :class="{ 'chip--active': filtroTipo === op.value }" @click="filtroTipo = op.value">
-            {{ op.label }}
-          </button>
+        <div class="panel-header">
+          <h3 class="filtros-titulo">Filtros</h3>
+          <button v-if="hasActiveFilters" class="btn-limpiar-text" @click="limpiarFiltros">Limpiar</button>
         </div>
-        <div class="filtros-divider" />
-        <p class="filtros-sub">Rango de fechas</p>
-        <div class="fecha-inputs">
-          <input type="date" class="filtro-input-fecha" v-model="filtroFechaDesde" />
-          <input type="date" class="filtro-input-fecha" v-model="filtroFechaHasta" />
+
+        <div class="filtro-group">
+          <p class="filtros-sub">Producto</p>
+          <div class="select-wrapper">
+            <select v-model="filtroProducto" class="filtro-input">
+              <option value="">Todos los productos</option>
+              <option v-for="prod in products" :key="prod.id" :value="prod.id">
+                {{ prod.nombre }}
+              </option>
+            </select>
+            <div class="select-arrow">▼</div>
+          </div>
         </div>
-        <button class="btn-limpiar" @click="limpiarFiltros">Limpiar filtros</button>
+
+        <div class="filtros-divider" />
+
+        <div class="filtro-group">
+          <p class="filtros-sub">Tipo de Movimiento</p>
+          <div class="filtros-chips">
+            <button v-for="op in opcionesTipo" :key="op.value" class="chip"
+              :class="{ 'chip--active': filtroTipo === op.value }" @click="filtroTipo = op.value">
+              {{ op.label }}
+            </button>
+          </div>
+        </div>
+
+        <div class="filtros-divider" />
+
+        <div class="filtro-group">
+          <p class="filtros-sub">Rango de fechas</p>
+          <div class="fecha-inputs">
+            <div class="input-group">
+              <label>Desde</label>
+              <input type="date" class="filtro-input-fecha" v-model="filtroFechaDesde" />
+            </div>
+            <div class="input-group">
+              <label>Hasta</label>
+              <input type="date" class="filtro-input-fecha" v-model="filtroFechaHasta" />
+            </div>
+          </div>
+        </div>
+
+        <div class="filtros-divider" />
+        
+        <div class="filtro-group">
+          <p class="filtros-sub">Columnas Visibles</p>
+          <ul class="filtros-list">
+            <li v-for="col in todasColumnas" :key="col.key" @click="toggleColumna(col.key)" class="col-item">
+              <span class="checkbox" :class="{ checked: columnasVisibles[col.key] }">
+                <svg v-if="columnasVisibles[col.key]" class="checkbox__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </span>
+              {{ col.label }}
+            </li>
+          </ul>
+        </div>
       </aside>
     </div>
 
@@ -105,6 +177,10 @@ const isLoading = ref(false);
 const loadError = ref('');
 const showNewMovement = ref(false);
 const successMsg = ref('');
+
+// Paginación
+const currentPage = ref(1);
+const itemsPerPage = ref(10);
 
 async function load() {
   isLoading.value = true; loadError.value = '';
@@ -146,6 +222,7 @@ function getProductName(id: string) {
 }
 
 function formatFecha(iso: string) {
+  if (!iso) return '—';
   const d = new Date(iso);
   return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
 }
@@ -165,11 +242,12 @@ type FiltroTipo = 'todos' | 'entrada' | 'salida';
 interface MovementFiltersState {
   columnasVisibles?: Partial<Record<ColumnaKey, boolean>>;
   filtroTipo?: FiltroTipo;
+  filtroProducto?: string;
   filtroFechaDesde?: string;
   filtroFechaHasta?: string;
 }
 
-const MOVEMENT_FILTERS_STORAGE_KEY = 'flowdesk.inventoryMovements.filters';
+const MOVEMENT_FILTERS_STORAGE_KEY = 'flowdesk.inventoryMovements.filters.v2';
 const DEFAULT_COLUMNAS_VISIBLES: Record<ColumnaKey, boolean> = {
   id: false,
   fecha: true,
@@ -217,8 +295,10 @@ function toggleColumna(key: ColumnaKey) { columnasVisibles.value[key] = !columna
 const columnaCount = computed(() => Math.max(1, Object.values(columnasVisibles.value).filter(Boolean).length));
 
 const filtroTipo = ref<FiltroTipo>(isFiltroTipo(savedFilters.filtroTipo) ? savedFilters.filtroTipo : 'todos');
+const filtroProducto = ref(typeof savedFilters.filtroProducto === 'string' ? savedFilters.filtroProducto : '');
 const filtroFechaDesde = ref(isDateFilter(savedFilters.filtroFechaDesde) ? savedFilters.filtroFechaDesde : '');
 const filtroFechaHasta = ref(isDateFilter(savedFilters.filtroFechaHasta) ? savedFilters.filtroFechaHasta : '');
+
 const opcionesTipo = [
   { value: 'todos' as const, label: 'Todos' },
   { value: 'entrada' as const, label: 'Entrada' },
@@ -229,6 +309,7 @@ watch(
   () => ({
     columnasVisibles: columnasVisibles.value,
     filtroTipo: filtroTipo.value,
+    filtroProducto: filtroProducto.value,
     filtroFechaDesde: filtroFechaDesde.value,
     filtroFechaHasta: filtroFechaHasta.value,
   }),
@@ -238,17 +319,67 @@ watch(
   { deep: true },
 );
 
+// Reset a la página 1 cuando cambian los filtros
+watch([filtroTipo, filtroProducto, filtroFechaDesde, filtroFechaHasta], () => {
+  currentPage.value = 1;
+});
+
 const movimientosFiltrados = computed(() => movimientos.value.filter(m => {
   if (filtroTipo.value === 'entrada' && !isInbound(m.tipo_movimiento)) return false;
   if (filtroTipo.value === 'salida' && isInbound(m.tipo_movimiento)) return false;
-  const f = m.fecha.slice(0, 10);
-  if (filtroFechaDesde.value && f < filtroFechaDesde.value) return false;
-  if (filtroFechaHasta.value && f > filtroFechaHasta.value) return false;
+  if (filtroProducto.value && m.producto_id !== filtroProducto.value) return false;
+  
+  if (m.fecha) {
+    const f = m.fecha.slice(0, 10);
+    if (filtroFechaDesde.value && f < filtroFechaDesde.value) return false;
+    if (filtroFechaHasta.value && f > filtroFechaHasta.value) return false;
+  }
+  
   return true;
 }));
 
+// Lógica de Paginación
+const totalPages = computed(() => Math.ceil(movimientosFiltrados.value.length / itemsPerPage.value) || 1);
+const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage.value);
+const endIndex = computed(() => startIndex.value + itemsPerPage.value);
+
+const movimientosPaginados = computed(() => {
+  return movimientosFiltrados.value.slice(startIndex.value, endIndex.value);
+});
+
+const displayedPages = computed(() => {
+  const pages = [];
+  const maxDisplayed = 5;
+  let start = Math.max(1, currentPage.value - Math.floor(maxDisplayed / 2));
+  let end = start + maxDisplayed - 1;
+
+  if (end > totalPages.value) {
+    end = totalPages.value;
+    start = Math.max(1, end - maxDisplayed + 1);
+  }
+
+  for (let i = start; i <= end; i++) {
+    pages.push(i);
+  }
+  return pages;
+});
+
+function nextPage() {
+  if (currentPage.value < totalPages.value) currentPage.value++;
+}
+
+function prevPage() {
+  if (currentPage.value > 1) currentPage.value--;
+}
+
+function goToPage(page: number) {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page;
+  }
+}
+
 const hasActiveFilters = computed(() =>
-  filtroTipo.value !== 'todos' || Boolean(filtroFechaDesde.value) || Boolean(filtroFechaHasta.value),
+  filtroTipo.value !== 'todos' || Boolean(filtroProducto.value) || Boolean(filtroFechaDesde.value) || Boolean(filtroFechaHasta.value),
 );
 
 const emptyStateMessage = computed(() =>
@@ -259,6 +390,7 @@ const emptyStateMessage = computed(() =>
 
 function limpiarFiltros() {
   filtroTipo.value = 'todos';
+  filtroProducto.value = '';
   filtroFechaDesde.value = '';
   filtroFechaHasta.value = '';
 }
@@ -266,83 +398,147 @@ function limpiarFiltros() {
 
 <style scoped>
 .movimiento-page {
-  padding: 32px 36px;
+  padding: 32px 48px;
   min-height: 100vh;
-  font-family: var(--font-sans);
-  color: var(--color-text);
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  color: var(--color-text, #1e293b);
+  background-color: #f8fafc;
 }
 
 .content-container {
   display: flex;
   gap: 32px;
   align-items: flex-start;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .table-section {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
 }
 
 .page-title {
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: 2.25rem;
+  font-weight: 800;
   margin: 0;
-  color: var(--color-text);
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
+
+.page-subtitle {
+  margin: 6px 0 0;
+  color: #64748b;
+  font-size: 0.95rem;
 }
 
 .btn-add {
-  padding: 9px 18px;
-  background: var(--color-structure-base);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: var(--color-structure-base, #3b82f6);
   color: #fff;
   border: none;
-  border-radius: 8px;
-  font-size: .875rem;
+  border-radius: 12px;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  font-family: var(--font-sans);
-  transition: filter .14s;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+  transition: all 0.2s ease;
 }
 
 .btn-add:hover {
-  filter: brightness(1.2);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
+}
+
+.btn-icon {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.alert {
+  padding: 16px 20px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 500;
+  animation: slideDown 0.3s ease-out;
+}
+
+.alert-success {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.alert-close {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 1.1rem;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.alert-close:hover {
+  opacity: 1;
 }
 
 .table-container {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: var(--shadow-card);
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0,0,0,0.02);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.table-wrapper {
+  overflow-x: auto;
 }
 
 .movimiento-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: .875rem;
+  font-size: 0.9rem;
 }
 
 .movimiento-table thead tr {
-  border-bottom: 2px solid #e8eef6;
-  background: var(--color-structure-base);
+  background: #f8fafc;
+  border-bottom: 2px solid #e2e8f0;
 }
 
 .movimiento-table th {
-  padding: 14px 20px;
+  padding: 16px 24px;
   text-align: left;
-  font-weight: 700;
-  color: #f0f4f9;
-  font-size: .85rem;
+  font-weight: 600;
+  color: #475569;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .movimiento-table tbody tr {
-  border-bottom: 1px solid #f0f4f9;
-  transition: background .12s;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 0.2s ease;
 }
 
 .movimiento-table tbody tr:last-child {
@@ -350,236 +546,391 @@ function limpiarFiltros() {
 }
 
 .movimiento-table tbody tr:hover {
-  background: #f8fafc;
+  background-color: #f8fafc;
 }
 
 .movimiento-table td {
-  padding: 14px 20px;
+  padding: 18px 24px;
   vertical-align: middle;
-  color: var(--color-text-secondary);
+  color: #334155;
 }
 
 .td-id {
-  font-size: .78rem;
-  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  color: #94a3b8;
   font-weight: 600;
-  font-family: monospace;
+  font-family: 'Fira Code', monospace;
 }
 
 .td-fecha {
   white-space: nowrap;
-  font-size: .82rem;
-  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.product-name {
+  font-weight: 600;
+  color: #1e293b;
 }
 
 .td-motivo {
-  font-size: .82rem;
-  color: var(--color-text-muted);
-  max-width: 220px;
+  max-width: 250px;
+  line-height: 1.4;
+  color: #64748b;
 }
 
 .tipo-badge {
   display: inline-flex;
   align-items: center;
-  padding: 3px 10px;
-  border-radius: 99px;
-  font-size: .78rem;
-  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .tipo-badge--entrada {
-  background: #e8f5e9;
-  color: #2e7d32;
+  background: #dcfce7;
+  color: #15803d;
 }
 
 .tipo-badge--salida {
-  background: #fff3e0;
-  color: #e65100;
+  background: #fee2e2;
+  color: #b91c1c;
 }
 
 .cantidad-num {
   font-weight: 700;
-  font-size: .9rem;
+  font-size: 1rem;
 }
 
-.cantidad-num--entrada {
-  color: #2e7d32;
-}
+.cantidad-num--entrada { color: #15803d; }
+.cantidad-num--salida { color: #b91c1c; }
 
-.cantidad-num--salida {
-  color: #e65100;
-}
-
+/* Empty State */
 .empty-state {
   text-align: center;
-  padding: 48px 0;
-  color: var(--color-text-muted);
-  font-size: .88rem;
-}
-
-.empty-state--error {
-  color: #c03a3a;
-}
-
-.filtros-panel {
-  width: 200px;
-  flex-shrink: 0;
+  padding: 64px 20px;
+  color: #64748b;
   display: flex;
   flex-direction: column;
-  padding-top: 4px;
+  align-items: center;
+  gap: 16px;
 }
 
-.filtros-titulo {
-  font-weight: 700;
-  font-size: .95rem;
-  color: var(--color-text);
-  margin: 0 0 12px;
+.empty-icon {
+  font-size: 3rem;
+  opacity: 0.8;
 }
 
-.filtros-sub {
-  font-size: .72rem;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  margin: 0 0 8px;
-  text-transform: uppercase;
-  letter-spacing: .04em;
-}
-
-.filtros-divider {
-  border-top: 1px solid #dde3ec;
-  margin: 14px 0;
-}
-
-.filtros-list {
-  list-style: none;
-  padding: 0;
+.empty-state p {
+  font-size: 1.05rem;
+  font-weight: 500;
   margin: 0;
 }
 
-.filtros-list li {
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e2e8f0;
+  border-top-color: var(--color-structure-base, #3b82f6);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Pagination */
+.pagination-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+}
+
+.pagination-info {
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.pagination-controls {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 4px 2px;
-  border-radius: 6px;
+}
+
+.btn-page {
+  padding: 8px 16px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #475569;
   cursor: pointer;
-  font-size: .83rem;
-  color: var(--color-text-secondary);
-  transition: background .12s;
-  user-select: none;
+  transition: all 0.2s;
 }
 
-.filtros-list li:hover {
-  background: rgba(0, 0, 0, .04);
+.btn-page:not(:disabled):hover {
+  background: #e2e8f0;
+  color: #1e293b;
 }
 
-.checkbox {
-  width: 16px;
-  height: 16px;
-  border: 2px solid #b0bbd4;
-  border-radius: 3px;
+.btn-page:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-numbers {
+  display: flex;
+  gap: 4px;
+}
+
+.btn-page-number {
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-page-number:hover {
+  background: #f1f5f9;
+}
+
+.btn-page-number.active {
+  background: var(--color-structure-base, #3b82f6);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+/* Filters Panel */
+.filtros-panel {
+  width: 280px;
   flex-shrink: 0;
-  background: #fff;
-  transition: all .14s;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0,0,0,0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.checkbox.checked {
-  background: #4a90d9;
-  border-color: #4a90d9;
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.checkbox__check {
-  font-size: .6rem;
-  color: #fff;
-  line-height: 1;
+.filtros-titulo {
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: #0f172a;
+  margin: 0;
 }
 
+.btn-limpiar-text {
+  background: none;
+  border: none;
+  color: var(--color-structure-base, #3b82f6);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.btn-limpiar-text:hover {
+  background: #eff6ff;
+}
+
+.filtro-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.filtros-sub {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #64748b;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.filtros-divider {
+  border-top: 1px solid #e2e8f0;
+  margin: 0;
+}
+
+/* Select Box */
+.select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.filtro-input, .filtro-input-fecha {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  color: #1e293b;
+  background: #ffffff;
+  outline: none;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  appearance: none;
+}
+
+.filtro-input:focus, .filtro-input-fecha:focus {
+  border-color: var(--color-structure-base, #3b82f6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.select-arrow {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 0.7rem;
+  color: #64748b;
+}
+
+/* Chips */
 .filtros-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chip {
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.chip:hover {
+  border-color: #cbd5e1;
+  background: #f1f5f9;
+}
+
+.chip--active {
+  background: var(--color-structure-base, #3b82f6);
+  border-color: var(--color-structure-base, #3b82f6);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+}
+
+/* Date Inputs */
+.fecha-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.input-group {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.chip {
-  padding: 5px 10px;
-  border-radius: 99px;
-  border: 1.5px solid #dde3ec;
-  background: transparent;
-  color: var(--color-text-secondary);
-  font-size: .8rem;
-  font-weight: 500;
-  cursor: pointer;
-  text-align: left;
-  transition: all .13s;
-  font-family: var(--font-sans);
-}
-
-.chip:hover {
-  border-color: #b0bbd4;
-  background: rgba(0, 0, 0, .04);
-}
-
-.chip--active {
-  background: var(--color-structure-base);
-  border-color: var(--color-structure-base);
-  color: #fff;
+.input-group label {
+  font-size: 0.8rem;
+  color: #64748b;
   font-weight: 600;
 }
 
-.fecha-inputs {
+/* Checkboxes */
+.filtros-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
-.filtro-input-fecha {
-  width: 100%;
-  padding: 7px 10px;
-  border: 1.5px solid #dde3ec;
+.col-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
   border-radius: 8px;
-  font-size: .82rem;
-  color: var(--color-text-secondary);
-  background: #fff;
-  outline: none;
-  font-family: var(--font-sans);
-  transition: border .13s;
-}
-
-.filtro-input-fecha:focus {
-  border-color: var(--color-structure-base);
-}
-
-.btn-limpiar {
-  margin-top: 20px;
-  width: 100%;
-  padding: 8px 0;
-  background: none;
-  border: 1.5px solid #dde3ec;
-  border-radius: 8px;
-  color: var(--color-text-muted);
-  font-size: .82rem;
-  font-weight: 600;
   cursor: pointer;
-  font-family: var(--font-sans);
-  transition: all .14s;
+  font-size: 0.9rem;
+  color: #334155;
+  font-weight: 500;
+  transition: background 0.2s;
+  user-select: none;
 }
 
-.btn-limpiar:hover {
-  border-color: var(--color-structure-base);
-  color: var(--color-structure-base);
-  background: var(--color-structure-subtle);
+.col-item:hover {
+  background: #f1f5f9;
 }
 
-@media (max-width: 900px) {
+.checkbox {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #cbd5e1;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: #ffffff;
+  transition: all 0.2s;
+}
+
+.checkbox.checked {
+  background: var(--color-structure-base, #3b82f6);
+  border-color: var(--color-structure-base, #3b82f6);
+}
+
+.checkbox__check {
+  width: 14px;
+  height: 14px;
+  color: #ffffff;
+}
+
+@media (max-width: 1024px) {
   .content-container {
     flex-direction: column;
   }
-
   .filtros-panel {
     width: 100%;
+    order: -1;
+  }
+  .filtros-chips {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .fecha-inputs {
+    flex-direction: row;
+  }
+  .input-group {
+    flex: 1;
   }
 }
 </style>

@@ -39,6 +39,11 @@ export function fetchRoles(): Promise<{ id: number; name: string; description: s
   });
 }
 
+export interface UpdateEmployeePayload {
+  role_id?: number;
+  is_active?: boolean;
+}
+
 export function updateEmployee(userId: string, payload: UpdateEmployeePayload): Promise<UserResponse> {
   return apiClient.request<UserResponse>(`/api/v1/users/${userId}`, {
     method: 'PUT',
