@@ -51,3 +51,19 @@ export function fetchInventoryProducts(): Promise<InventoryProduct[]> {
         auth: true
     }).then(products => products.map(normalizeInventoryProduct));
 }
+
+export interface CreateProductPayload {
+    nombre: string;
+    descripcion?: string;
+    precio: number;
+    stockMinimo: number;
+    proveedor?: string | null;
+}
+
+export function createInventoryProduct(payload: CreateProductPayload): Promise<InventoryProduct> {
+    return apiClient.request<InventoryProductResponse>('/api/v1/inventory/products', {
+        method: 'POST',
+        auth: true,
+        body: payload
+    }).then(normalizeInventoryProduct);
+}

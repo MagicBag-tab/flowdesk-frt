@@ -12,11 +12,11 @@
               <span class="btn-icon">+</span> Nuevo Registro
             </button>
             <div v-if="isDropdownOpen" class="dropdown-menu">
-              <button class="dropdown-item" @click="openModal('product')"><Package class="dropdown-icon" /> Crear Producto</button>
-              <button class="dropdown-item" @click="openModal('stock')"><Download class="dropdown-icon" /> Ingresar Stock</button>
-              <button class="dropdown-item" @click="openModal('sale')"><ShoppingCart class="dropdown-icon" /> Registrar Venta</button>
+              <button class="dropdown-item" @click="openModal('product')">Crear Producto</button>
+              <button class="dropdown-item" @click="openModal('stock')">Ingresar Stock</button>
+              <button class="dropdown-item" @click="openModal('sale')">Registrar Venta</button>
               <div class="dropdown-divider"></div>
-              <button class="dropdown-item" @click="openModal('other')"><Settings2 class="dropdown-icon" /> Ajuste (Otro)</button>
+              <button class="dropdown-item" @click="openModal('other')">Ajuste (Otro)</button>
             </div>
           </div>
         </div>
@@ -68,7 +68,6 @@
                   </tr>
                   <tr v-else-if="movimientosFiltrados.length === 0">
                     <td :colspan="columnaCount" class="empty-state">
-                      <div class="empty-icon"><Package stroke-width="1.5" /></div>
                       <p>{{ emptyStateMessage }}</p>
                     </td>
                   </tr>
@@ -163,6 +162,26 @@
       </aside>
     </div>
 
+    <NewProductModal
+      v-if="showNewProduct"
+      @close="showNewProduct = false"
+      @created="onMovementCreated"
+    />
+
+    <StockInputModal
+      v-if="showStockInput"
+      :products="products"
+      @close="showStockInput = false"
+      @created="onMovementCreated"
+    />
+
+    <SaleModal
+      v-if="showSale"
+      :products="products"
+      @close="showSale = false"
+      @created="onMovementCreated"
+    />
+
     <NewMovementModal
       v-if="showNewMovement"
       :products="products"
@@ -174,10 +193,12 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
-import { Package, Download, ShoppingCart, Settings2 } from 'lucide-vue-next';
 import { fetchMovements, isInbound, type InventoryMovement } from '@/features/inventorymovement/api';
 import { fetchInventoryProducts } from '@/features/inventory/api';
 import type { InventoryProduct } from '@/features/inventory/types';
+import NewProductModal from '@/features/inventory/components/NewProductModal.vue';
+import StockInputModal from '@/features/inventorymovement/components/StockInputModal.vue';
+import SaleModal from '@/features/inventorymovement/components/SaleModal.vue';
 import NewMovementModal from '@/features/inventorymovement/components/NewMovementModal.vue';
 import { ApiError } from '@/services/apiClient';
 
@@ -187,8 +208,7 @@ const isLoading = ref(false);
 const loadError = ref('');
 const successMsg = ref('');
 
-// Modal States
-const showNewMovement = ref(false); // Modal original (ahora usado para 'Otro')
+const showNewMovement = ref(false); 
 const showNewProduct = ref(false);
 const showStockInput = ref(false);
 const showSale = ref(false);
@@ -210,7 +230,6 @@ function closeDropdown(e: MouseEvent) {
   }
 }
 
-// Paginación
 const currentPage = ref(1);
 const itemsPerPage = ref(10);
 
