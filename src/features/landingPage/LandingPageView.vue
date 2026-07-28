@@ -1,3 +1,4 @@
+
 <template>
   <div class="landing">
 
@@ -19,19 +20,62 @@
 
       <div class="hero__content">
 
-        <h1 class="hero__heading">
-          Todo tu negocio,<br />
-          <em>en un solo lugar</em>
-        </h1>
+        <div class="hero__left">
 
-        <p class="hero__sub">
-          FlowDesk centraliza la gestión de inventarios, empleados, movimientos y análisis de tu empresa.
-          Menos herramientas, más control, mejores decisiones.
-        </p>
+          <div class="hero__eyebrow">
+            <span class="hero__eyebrow-dot"></span>
+            Plataforma inteligente para empresas
+          </div>
 
-        <div class="hero__actions">
-          <RouterLink to="/register" class="btn-hero-primary">Comenzar ahora</RouterLink>
-          <RouterLink to="/login" class="btn-hero-ghost">Iniciar sesión</RouterLink>
+          <h1 class="hero__heading">
+            Todo tu negocio,<br />
+            <em>en un solo lugar</em>
+          </h1>
+
+          <p class="hero__sub">
+            Gestiona inventarios, empleados, movimientos y reportes
+            desde una sola plataforma diseñada para impulsar el crecimiento de tu empresa.
+          </p>
+
+          <div class="hero__actions">
+            <RouterLink
+              to="/register"
+              class="btn-hero-primary"
+            >
+              Comenzar ahora
+            </RouterLink>
+
+            <RouterLink
+              to="/login"
+              class="btn-hero-ghost"
+            >
+              Iniciar sesión
+            </RouterLink>
+          </div>
+
+          <div class="hero__actions">
+  ...
+</div>
+
+<HeroCarousel />
+        </div>
+
+        <div class="hero__right">
+
+          <div class="hero__preview">
+
+            <div class="hero__preview-header">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+
+            <div class="hero__preview-body">
+
+            </div>
+
+          </div>
+
         </div>
 
       </div>
@@ -76,6 +120,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
 import { RouterLink } from 'vue-router';
+import HeroCarousel from './components/HeroCarousel.vue';
 
 const scrolled = ref(false);
 
@@ -207,7 +252,7 @@ const missionBlocks = [
 }
 
 .navbar__logo-img {
-  height: 38px;
+  height: 70px;
   width: auto;
 }
 
