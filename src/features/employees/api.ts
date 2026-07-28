@@ -38,3 +38,23 @@ export function fetchRoles(): Promise<{ id: number; name: string; description: s
     auth: true,
   });
 }
+
+export function updateEmployee(userId: string, payload: UpdateEmployeePayload): Promise<UserResponse> {
+  return apiClient.request<UserResponse>(`/api/v1/users/${userId}`, {
+    method: 'PUT',
+    auth: true,
+    body: payload,
+  });
+}
+
+export interface UpdateEmployeeStatusPayload {
+  is_active: boolean;
+}
+
+export function updateEmployeeStatus(userId: string, payload: UpdateEmployeeStatusPayload): Promise<UserResponse> {
+  return apiClient.request<UserResponse>(`/api/v1/users/${userId}/status`, {
+    method: 'PATCH',
+    auth: true,
+    body: payload,
+  });
+}

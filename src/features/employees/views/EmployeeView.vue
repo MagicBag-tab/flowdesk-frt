@@ -23,6 +23,7 @@
             <th>Rol</th>
             <th>Estado</th>
             <th>Miembro desde</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -41,9 +42,19 @@
               </span>
             </td>
             <td class="td-date">{{ formatDate(u.created_at) }}</td>
+            <td class="td-actions">
+              <button
+                v-if="u.role_name !== 'superadmin'"
+                type="button"
+                class="btn-edit"
+                @click="openEditModal(u)"
+              >
+                Editar
+              </button>
+            </td>
           </tr>
           <tr v-if="empleados.length === 0 && !isLoading">
-            <td colspan="5" class="table-empty">No hay empleados registrados aún.</td>
+            <td colspan="6" class="table-empty">No hay empleados registrados aún.</td>
           </tr>
         </tbody>
       </table>
@@ -66,6 +77,13 @@
       @close="showAddModal = false"
       @created="onEmployeeCreated"
     />
+
+    <EditEmployeeModal
+      v-if="showEditModal && selectedEmployee"
+      :employee="selectedEmployee"
+      @close="showEditModal = false"
+      @updated="onEmployeeUpdated"
+    />
   </div>
 </template>
 
@@ -73,12 +91,15 @@
 import { ref, computed, onMounted } from 'vue';
 import { fetchEmployees, type UserResponse } from '@/features/employees/api';
 import AddEmployeeModal from '@/features/employees/components/AddEmployeeModal.vue';
+import EditEmployeeModal from '@/features/employees/components/EditEmployeeModal.vue';
 import { getApiErrorMessage } from '@/services/apiClient';
 
 const empleados = ref<UserResponse[]>([]);
 const isLoading = ref(false);
 const loadError = ref('');
 const showAddModal = ref(false);
+const showEditModal = ref(false);
+const selectedEmployee = ref<UserResponse | null>(null);
 const successMsg = ref('');
 
 const activeCount = computed(() => empleados.value.filter(e => e.is_active).length);
@@ -101,6 +122,18 @@ onMounted(loadEmpleados);
 async function onEmployeeCreated() {
   showAddModal.value = false;
   successMsg.value = 'Empleado agregado. Se envió una invitación por correo.';
+  await loadEmpleados();
+  setTimeout(() => { successMsg.value = ''; }, 5000);
+}
+
+function openEditModal(u: UserResponse) {
+  selectedEmployee.value = u;
+  showEditModal.value = true;
+}
+
+async function onEmployeeUpdated() {
+  showEditModal.value = false;
+  successMsg.value = 'Empleado actualizado correctamente.';
   await loadEmpleados();
   setTimeout(() => { successMsg.value = ''; }, 5000);
 }
@@ -185,6 +218,23 @@ function formatDate(iso: string): string {
 .td-name { font-weight: 600; color: var(--color-structure-base); }
 .td-email { font-size: 0.83rem; color: var(--color-text-muted); }
 .td-date { font-size: 0.8rem; color: var(--color-text-muted); white-space: nowrap; }
+.td-actions { text-align: right; white-space: nowrap; }
+.btn-edit {
+  padding: 6px 14px;
+  background: none;
+  border: 1.5px solid var(--color-structure-subtle);
+  border-radius: 7px;
+  color: var(--color-structure-hover);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: all 0.13s;
+}
+.btn-edit:hover {
+  border-color: var(--color-structure-base);
+  background: var(--color-structure-subtle);
+}
 .table-empty {
   text-align: center;
   padding: 48px;
