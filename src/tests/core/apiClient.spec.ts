@@ -8,10 +8,15 @@ vi.mock("@/services/env", () => ({
   },
 }));
 
-vi.mock("@/stores/app.store", () => ({
-  appStore: {
-    accessToken: "token123",
+const { appStoreMock } = vi.hoisted(() => ({
+  appStoreMock: {
+    accessToken: "token123" as string | null,
+    clearSession: vi.fn(),
   },
+}));
+
+vi.mock("@/stores/app.store", () => ({
+  appStore: appStoreMock,
 }));
 
 import {
@@ -47,6 +52,8 @@ describe("getApiErrorMessage", () => {
 describe("apiClient", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    appStoreMock.accessToken = "token123";
+    appStoreMock.clearSession.mockClear();
   });
 
   it("realiza una petición correctamente", async () => {
@@ -94,14 +101,29 @@ describe("apiClient", () => {
   });
 
   it("requiere autenticación cuando auth es true y no hay token", async () => {
-    vi.doMock("@/stores/app.store", () => ({
-      appStore: {
-        accessToken: null,
-      },
-    }));
+    appStoreMock.accessToken = null;
 
     await expect(
       apiClient.request("/test", { auth: true }),
     ).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("limpia la sesión cuando el backend indica que el token es inválido o expirado", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 401,
+        text: () =>
+          Promise.resolve(
+            JSON.stringify({
+              detail: "Token inválido o expirado",
+            }),
+          ),
+      }),
+    );
+
+    await expect(apiClient.request("/test", { auth: true })).rejects.toBeInstanceOf(ApiError);
+    expect(appStoreMock.clearSession).toHaveBeenCalledTimes(1);
   });
 });

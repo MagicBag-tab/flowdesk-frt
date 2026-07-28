@@ -15,6 +15,7 @@ import WelcomeView from '@/features/auth/views/WelcomeView.vue';
 import ResetPasswordView from '@/features/auth/views/ResetPasswordView.vue';
 import AnalyticsView from '@/features/analytics/views/AnalyticsView.vue';
 import EmployeesView from '@/features/employees/views/EmployeeView.vue';
+import SuppliersView from '@/features/suppliers/views/SuppliersView.vue';
 import LandingPageView from '@/features/landingPage/LandingPageView.vue';
 
 
@@ -151,6 +152,16 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresRole: ['admin'],
           title: 'Empleados',
+        },
+      },
+      {
+        path: 'suppliers',
+        name: 'suppliers',
+        component: SuppliersView,
+        meta: {
+          requiresAuth: true,
+          requiresRole: ['admin', 'manager', 'employee'],
+          title: 'Proveedores',
         },
       },
       //Se agregan nuevas features al menú principal aquí, como movimiento, análisis, clientes, etc.

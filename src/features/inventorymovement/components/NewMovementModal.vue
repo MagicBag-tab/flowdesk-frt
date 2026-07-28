@@ -3,7 +3,9 @@
     <div class="modal-backdrop" @click.self="$emit('close')">
       <div class="modal">
         <div class="modal__header">
-          <h2 class="modal__title">Nuevo movimiento</h2>
+          <div class="header-content">
+            <h2 class="modal__title">Ajuste de Inventario (Otro)</h2>
+          </div>
           <button class="modal__close" type="button" @click="$emit('close')">✕</button>
         </div>
 
@@ -28,18 +30,9 @@
             <label class="form-label">Tipo de movimiento</label>
             <select v-model="form.tipo_movimiento" class="form-input" :class="{ 'input-error': errors.tipo_movimiento }" @change="errors.tipo_movimiento = ''">
               <option value="" disabled>Seleccionar tipo…</option>
-              <optgroup label="Entradas">
-                <option value="entrada_compra">Entrada — Compra</option>
-                <option value="entrada_manual">Entrada — Manual</option>
-                <option value="ajuste_positivo">Ajuste positivo</option>
-                <option value="devolucion_cliente">Devolución cliente</option>
-              </optgroup>
-              <optgroup label="Salidas">
-                <option value="salida_venta">Salida — Venta</option>
-                <option value="salida_manual">Salida — Manual</option>
-                <option value="ajuste_negativo">Ajuste negativo</option>
-                <option value="devolucion_proveedor">Devolución proveedor</option>
-              </optgroup>
+              <option v-for="opt in opcionesTipoMovimiento" :key="opt.value" :value="opt.value">
+                {{ opt.label }}
+              </option>
             </select>
             <span v-if="errors.tipo_movimiento" class="error-msg">{{ errors.tipo_movimiento }}</span>
           </div>
@@ -81,6 +74,16 @@ import { getApiErrorMessage } from '@/services/apiClient';
 import type { InventoryProduct } from '@/features/inventory/types';
 
 defineProps<{ products: InventoryProduct[] }>();
+
+const opcionesTipoMovimiento = [
+  { value: 'ajuste_positivo', label: 'Ajuste Positivo (+)' },
+  { value: 'ajuste_negativo', label: 'Ajuste Negativo (-)' },
+  { value: 'devolucion_cliente', label: 'Devolución de Cliente (+)' },
+  { value: 'devolucion_proveedor', label: 'Devolución a Proveedor (-)' },
+  { value: 'entrada_manual', label: 'Entrada Manual (+)' },
+  { value: 'salida_manual', label: 'Salida Manual (-)' },
+];
+
 const emit = defineEmits<{ close: []; created: [] }>();
 
 interface FormData {
@@ -154,6 +157,19 @@ async function submit() {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 20px;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-structure-base, #3b82f6);
 }
 
 .modal__title {
