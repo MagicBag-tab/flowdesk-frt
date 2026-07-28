@@ -7,9 +7,18 @@
             <h1 class="page-title">Movimiento de Inventario</h1>
             <p class="page-subtitle">Gestiona las entradas y salidas de tus productos</p>
           </div>
-          <button class="btn-add" type="button" @click="showNewMovement = true">
-            <span class="btn-icon">+</span> Nuevo movimiento
-          </button>
+          <div class="dropdown-container">
+            <button class="btn-add" type="button" @click="isDropdownOpen = !isDropdownOpen">
+              <span class="btn-icon">+</span> Nuevo Registro
+            </button>
+            <div v-if="isDropdownOpen" class="dropdown-menu">
+              <button class="dropdown-item" @click="openModal('product')"><Package class="dropdown-icon" /> Crear Producto</button>
+              <button class="dropdown-item" @click="openModal('stock')"><Download class="dropdown-icon" /> Ingresar Stock</button>
+              <button class="dropdown-item" @click="openModal('sale')"><ShoppingCart class="dropdown-icon" /> Registrar Venta</button>
+              <div class="dropdown-divider"></div>
+              <button class="dropdown-item" @click="openModal('other')"><Settings2 class="dropdown-icon" /> Ajuste (Otro)</button>
+            </div>
+          </div>
         </div>
 
         <div v-if="successMsg" class="alert alert-success">
@@ -59,7 +68,7 @@
                   </tr>
                   <tr v-else-if="movimientosFiltrados.length === 0">
                     <td :colspan="columnaCount" class="empty-state">
-                      <div class="empty-icon">📦</div>
+                      <div class="empty-icon"><Package stroke-width="1.5" /></div>
                       <p>{{ emptyStateMessage }}</p>
                     </td>
                   </tr>
@@ -164,7 +173,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { Package, Download, ShoppingCart, Settings2 } from 'lucide-vue-next';
 import { fetchMovements, isInbound, type InventoryMovement } from '@/features/inventorymovement/api';
 import { fetchInventoryProducts } from '@/features/inventory/api';
 import type { InventoryProduct } from '@/features/inventory/types';
@@ -175,8 +185,30 @@ const movimientos = ref<InventoryMovement[]>([]);
 const products = ref<InventoryProduct[]>([]);
 const isLoading = ref(false);
 const loadError = ref('');
-const showNewMovement = ref(false);
 const successMsg = ref('');
+
+// Modal States
+const showNewMovement = ref(false); // Modal original (ahora usado para 'Otro')
+const showNewProduct = ref(false);
+const showStockInput = ref(false);
+const showSale = ref(false);
+
+const isDropdownOpen = ref(false);
+
+function openModal(modalName: string) {
+  isDropdownOpen.value = false;
+  if (modalName === 'product') showNewProduct.value = true;
+  if (modalName === 'stock') showStockInput.value = true;
+  if (modalName === 'sale') showSale.value = true;
+  if (modalName === 'other') showNewMovement.value = true;
+}
+
+function closeDropdown(e: MouseEvent) {
+  const target = e.target as HTMLElement;
+  if (!target.closest('.dropdown-container')) {
+    isDropdownOpen.value = false;
+  }
+}
 
 // Paginación
 const currentPage = ref(1);
@@ -209,7 +241,14 @@ async function load() {
   }
 }
 
-onMounted(load);
+onMounted(() => {
+  load();
+  document.addEventListener('click', closeDropdown);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('click', closeDropdown);
+});
 
 async function onMovementCreated() {
   successMsg.value = 'Movimiento registrado correctamente.';
@@ -441,6 +480,11 @@ function limpiarFiltros() {
   font-size: 0.95rem;
 }
 
+/* Botón y Dropdown */
+.dropdown-container {
+  position: relative;
+}
+
 .btn-add {
   display: flex;
   align-items: center;
@@ -465,6 +509,64 @@ function limpiarFiltros() {
 .btn-icon {
   font-size: 1.2rem;
   font-weight: bold;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 220px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  padding: 8px 0;
+  z-index: 100;
+  animation: slideDownMenu 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideDownMenu {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px 16px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 0.9rem;
+  color: #334155;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.dropdown-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 10px;
+  color: #94a3b8;
+  transition: color 0.15s;
+  flex-shrink: 0;
+}
+
+.dropdown-item:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.dropdown-item:hover .dropdown-icon {
+  color: var(--color-structure-base, #3b82f6);
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: #e2e8f0;
+  margin: 6px 0;
 }
 
 .alert {
@@ -618,8 +720,8 @@ function limpiarFiltros() {
 }
 
 .empty-icon {
-  font-size: 3rem;
-  opacity: 0.8;
+  color: #94a3b8;
+  margin-bottom: 8px;
 }
 
 .empty-state p {
