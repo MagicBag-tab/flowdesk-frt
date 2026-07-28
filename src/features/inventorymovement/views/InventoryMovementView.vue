@@ -164,6 +164,7 @@
 
     <NewProductModal
       v-if="showNewProduct"
+      :products="products"
       @close="showNewProduct = false"
       @created="onMovementCreated"
     />

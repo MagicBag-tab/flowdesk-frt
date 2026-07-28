@@ -19,14 +19,21 @@
             <input v-model="form.nombre" type="text" class="form-input" required placeholder="Ej. Lápiz HB" />
           </div>
 
+          <div v-if="similarProducts.length > 0" class="warning-alert full-width">
+            <strong>⚠️ Posibles duplicados:</strong> Ya existen productos con nombres similares:
+            <ul>
+              <li v-for="prod in similarProducts" :key="prod.id">{{ prod.nombre }}</li>
+            </ul>
+          </div>
+
           <div class="form-group full-width">
             <label class="form-label">Descripción</label>
             <textarea v-model="form.descripcion" class="form-input" rows="2" placeholder="Detalles del producto..."></textarea>
           </div>
 
           <div class="form-group">
-            <label class="form-label">Precio Unitario (Q) *</label>
-            <input v-model.number="form.precio" type="number" step="0.01" min="0" class="form-input" required />
+            <label class="form-label">Precio de Venta (Q) *</label>
+            <input v-model.number="form.precio_venta" type="number" step="0.01" min="0" class="form-input" required />
           </div>
 
           <div class="form-group">
@@ -36,12 +43,18 @@
 
           <div class="form-group">
             <label class="form-label">Stock Mínimo (Alerta) *</label>
-            <input v-model.number="form.stockMinimo" type="number" min="0" class="form-input" required />
+            <input v-model.number="form.stock_minimo" type="number" min="0" class="form-input" required />
           </div>
 
           <div class="form-group">
-            <label class="form-label">Proveedor</label>
-            <input v-model="form.proveedor" type="text" class="form-input" placeholder="Nombre de la empresa" />
+            <label class="form-label">Unidad de medida</label>
+            <select v-model="form.unidad_medida" class="form-input">
+              <option value="unidad">Unidad</option>
+              <option value="kg">Kilogramo (kg)</option>
+              <option value="lb">Libra (lb)</option>
+              <option value="litro">Litro (l)</option>
+              <option value="caja">Caja</option>
+            </select>
           </div>
 
           <div v-if="error" class="error-alert">{{ error }}</div>
@@ -59,10 +72,15 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue';
+import { reactive, ref, computed } from 'vue';
 import { createInventoryProduct } from '@/features/inventory/api';
 import { createMovement } from '@/features/inventorymovement/api';
 import { getApiErrorMessage } from '@/services/apiClient';
+import type { InventoryProduct } from '@/features/inventory/types';
+
+const props = defineProps<{
+  products: InventoryProduct[];
+}>();
 
 const emit = defineEmits<{
   (e: 'close'): void;
@@ -72,17 +90,25 @@ const emit = defineEmits<{
 const form = reactive({
   nombre: '',
   descripcion: '',
-  precio: 0,
-  stockMinimo: 0,
+  precio_venta: 0,
+  stock_minimo: 0,
   stockInicial: 0,
-  proveedor: '',
+  unidad_medida: 'unidad',
 });
 
 const isSubmitting = ref(false);
 const error = ref('');
 
+const similarProducts = computed(() => {
+  if (form.nombre.length < 3) return [];
+  const search = form.nombre.toLowerCase();
+  return props.products
+    .filter(p => p.nombre.toLowerCase().includes(search))
+    .slice(0, 3); // Solo mostrar los primeros 3 para no saturar
+});
+
 async function submit() {
-  if (!form.nombre || form.precio < 0 || form.stockInicial < 0 || form.stockMinimo < 0) {
+  if (!form.nombre || form.precio_venta < 0 || form.stockInicial < 0 || form.stock_minimo < 0) {
     error.value = 'Por favor revisa los campos requeridos y que no haya valores negativos.';
     return;
   }
@@ -91,12 +117,17 @@ async function submit() {
   error.value = '';
 
   try {
+    // Generar SKU automáticamente: PRD-XXXXXX (donde X son los milisegundos finales)
+    const generatedSku = `PRD-${Date.now().toString().slice(-6)}`;
+
+    // 1. Crear Producto
     const producto = await createInventoryProduct({
+      sku: generatedSku,
       nombre: form.nombre,
       descripcion: form.descripcion,
-      precio: form.precio,
-      stockMinimo: form.stockMinimo,
-      proveedor: form.proveedor || null,
+      precio_venta: form.precio_venta,
+      stock_minimo: form.stock_minimo,
+      unidad_medida: form.unidad_medida,
     });
 
     if (form.stockInicial > 0) {
@@ -237,6 +268,21 @@ async function submit() {
   outline: none;
   border-color: var(--color-structure-base, #3b82f6);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.warning-alert {
+  padding: 12px;
+  background: #fffbeb;
+  color: #b45309;
+  border-left: 4px solid #f59e0b;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+}
+
+.warning-alert ul {
+  margin: 6px 0 0 0;
+  padding-left: 20px;
 }
 
 .error-alert {

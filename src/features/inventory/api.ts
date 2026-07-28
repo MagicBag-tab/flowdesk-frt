@@ -53,11 +53,13 @@ export function fetchInventoryProducts(): Promise<InventoryProduct[]> {
 }
 
 export interface CreateProductPayload {
+    sku: string;
     nombre: string;
     descripcion?: string;
-    precio: number;
-    stockMinimo: number;
-    proveedor?: string | null;
+    precio_venta: number;
+    stock_minimo: number;
+    unidad_medida?: string;
+    proveedor_id?: string | null;
 }
 
 export function createInventoryProduct(payload: CreateProductPayload): Promise<InventoryProduct> {
