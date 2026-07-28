@@ -5,6 +5,7 @@
 
       <div class="table-section">
         <h1 class="page-title">Inventario</h1>
+        <p class="page-subtitle">Consulta los productos disponibles en tu inventario</p>
 
         <div class="table-container">
           <div v-if="isLoading" class="empty-state">Cargando productos...</div>
@@ -308,9 +309,16 @@ const productosStockBajo = computed(() =>
 .page-title {
   font-size: 2rem;
   font-weight: 700;
-  margin: 0 0 20px;
+  margin: 0;
   color: var(--color-text);
 }
+
+.page-subtitle {
+  margin: 6px 0 20px;
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+}
+
 .table-container {
   background: #fff;
   border-radius: 12px;

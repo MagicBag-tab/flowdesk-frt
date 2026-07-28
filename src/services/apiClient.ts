@@ -121,11 +121,14 @@ export const apiClient = {
       const responsePayload = await parseResponse(response);
 
       if (!response.ok) {
-        throw new ApiError(
-          response.status,
-          normalizeErrorMessage(responsePayload) ??
-            `La solicitud fallo con estado ${response.status}.`,
-        );
+        const errorMessage = normalizeErrorMessage(responsePayload) ??
+          `La solicitud fallo con estado ${response.status}.`;
+
+        if (response.status === 401 && options.auth) {
+          appStore.clearSession();
+        }
+
+        throw new ApiError(response.status, errorMessage);
       }
 
       return responsePayload as T;

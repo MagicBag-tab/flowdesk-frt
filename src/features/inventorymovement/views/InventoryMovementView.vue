@@ -625,9 +625,9 @@ function limpiarFiltros() {
 }
 
 .table-container {
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0,0,0,0.02);
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: var(--shadow-card);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -640,27 +640,25 @@ function limpiarFiltros() {
 .movimiento-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
 }
 
 .movimiento-table thead tr {
-  background: #f8fafc;
-  border-bottom: 2px solid #e2e8f0;
+  background: var(--color-structure-base);
+  border-bottom: 2px solid #e8eef6;
 }
 
 .movimiento-table th {
-  padding: 16px 24px;
+  padding: 14px 20px;
   text-align: left;
-  font-weight: 600;
-  color: #475569;
+  font-weight: 700;
+  color: #f0f4f9;
   font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 .movimiento-table tbody tr {
-  border-bottom: 1px solid #f1f5f9;
-  transition: background-color 0.2s ease;
+  border-bottom: 1px solid #f0f4f9;
+  transition: background 0.12s;
 }
 
 .movimiento-table tbody tr:last-child {
@@ -668,18 +666,18 @@ function limpiarFiltros() {
 }
 
 .movimiento-table tbody tr:hover {
-  background-color: #f8fafc;
+  background: rgba(0, 0, 0, 0.02);
 }
 
 .movimiento-table td {
-  padding: 18px 24px;
+  padding: 14px 20px;
   vertical-align: middle;
-  color: #334155;
+  color: var(--color-text-secondary);
 }
 
 .td-id {
-  font-size: 0.85rem;
-  color: #94a3b8;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
   font-weight: 600;
   font-family: 'Fira Code', monospace;
 }
@@ -691,23 +689,22 @@ function limpiarFiltros() {
 
 .product-name {
   font-weight: 600;
-  color: #1e293b;
+  color: var(--color-text);
 }
 
 .td-motivo {
   max-width: 250px;
   line-height: 1.4;
-  color: #64748b;
+  color: var(--color-text-muted);
 }
 
 .tipo-badge {
   display: inline-flex;
   align-items: center;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 0.8rem;
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-size: 0.78rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
 }
 
 .tipo-badge--entrada {
@@ -722,7 +719,7 @@ function limpiarFiltros() {
 
 .cantidad-num {
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 0.88rem;
 }
 
 .cantidad-num--entrada { color: #15803d; }
@@ -731,12 +728,13 @@ function limpiarFiltros() {
 /* Empty State */
 .empty-state {
   text-align: center;
-  padding: 64px 20px;
-  color: #64748b;
+  padding: 48px 20px;
+  color: var(--color-text-muted);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
+  font-size: 0.88rem;
 }
 
 .empty-icon {
@@ -745,8 +743,8 @@ function limpiarFiltros() {
 }
 
 .empty-state p {
-  font-size: 1.05rem;
-  font-weight: 500;
+  font-size: 0.88rem;
+  font-weight: 400;
   margin: 0;
 }
 
@@ -766,14 +764,14 @@ function limpiarFiltros() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 24px;
-  background: #ffffff;
-  border-top: 1px solid #e2e8f0;
+  padding: 12px 20px;
+  background: #fff;
+  border-top: 1px solid #f0f4f9;
 }
 
 .pagination-info {
-  font-size: 0.85rem;
-  color: #64748b;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
   font-weight: 500;
 }
 
@@ -784,20 +782,21 @@ function limpiarFiltros() {
 }
 
 .btn-page {
-  padding: 8px 16px;
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
+  padding: 7px 12px;
+  background: #fff;
+  border: 1.5px solid #dde3ec;
   border-radius: 8px;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  color: #475569;
+  color: var(--color-text-secondary);
   cursor: pointer;
-  transition: all 0.2s;
+  font-family: var(--font-sans);
+  transition: border-color 0.13s, background 0.13s;
 }
 
 .btn-page:not(:disabled):hover {
-  background: #e2e8f0;
-  color: #1e293b;
+  border-color: #b0bbd4;
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .btn-page:disabled {
@@ -811,19 +810,20 @@ function limpiarFiltros() {
 }
 
 .btn-page-number {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: transparent;
-  border: 1px solid transparent;
+  border: 1.5px solid transparent;
   border-radius: 8px;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  color: #475569;
+  color: var(--color-text-secondary);
   cursor: pointer;
-  transition: all 0.2s;
+  font-family: var(--font-sans);
+  transition: all 0.13s;
 }
 
 .btn-page-number:hover {
@@ -831,71 +831,68 @@ function limpiarFiltros() {
 }
 
 .btn-page-number.active {
-  background: var(--color-structure-base, #3b82f6);
-  color: #ffffff;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  background: var(--color-structure-base);
+  border-color: var(--color-structure-base);
+  color: #fff;
 }
 
 /* Filters Panel */
 .filtros-panel {
-  width: 280px;
+  width: 180px;
   flex-shrink: 0;
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0,0,0,0.02);
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  padding-top: 4px;
 }
 
 .panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
 .filtros-titulo {
-  font-weight: 800;
-  font-size: 1.25rem;
-  color: #0f172a;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--color-text);
   margin: 0;
 }
 
 .btn-limpiar-text {
   background: none;
   border: none;
-  color: var(--color-structure-base, #3b82f6);
-  font-size: 0.85rem;
+  color: var(--color-structure-base);
+  font-size: 0.72rem;
   font-weight: 600;
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 3px 6px;
   border-radius: 6px;
-  transition: background 0.2s;
+  font-family: var(--font-sans);
+  transition: background 0.12s;
 }
 
 .btn-limpiar-text:hover {
-  background: #eff6ff;
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .filtro-group {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .filtros-sub {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
   margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 .filtros-divider {
-  border-top: 1px solid #e2e8f0;
-  margin: 0;
+  border-top: 1px solid #dde3ec;
+  margin: 14px 0;
 }
 
 /* Select Box */
@@ -906,82 +903,87 @@ function limpiarFiltros() {
 
 .filtro-input, .filtro-input-fecha {
   width: 100%;
-  padding: 10px 14px;
-  border: 1px solid #cbd5e1;
-  border-radius: 10px;
-  font-size: 0.9rem;
-  color: #1e293b;
+  padding: 7px 28px 7px 10px;
+  border: 1.5px solid #dde3ec;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
   background: #ffffff;
   outline: none;
-  font-family: inherit;
-  transition: all 0.2s ease;
+  font-family: var(--font-sans);
+  transition: border-color 0.13s, box-shadow 0.13s;
   appearance: none;
 }
 
+.filtro-input-fecha {
+  padding-right: 8px;
+}
+
 .filtro-input:focus, .filtro-input-fecha:focus {
-  border-color: var(--color-structure-base, #3b82f6);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: var(--color-structure-base);
+  box-shadow: 0 0 0 2px var(--color-structure-subtle);
 }
 
 .select-arrow {
   position: absolute;
-  right: 14px;
+  right: 10px;
   top: 50%;
   transform: translateY(-50%);
   pointer-events: none;
-  font-size: 0.7rem;
-  color: #64748b;
+  font-size: 0.6rem;
+  color: var(--color-text-muted);
 }
 
 /* Chips */
 .filtros-chips {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .chip {
-  padding: 10px 16px;
-  border-radius: 10px;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
-  color: #475569;
-  font-size: 0.9rem;
-  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 99px;
+  border: 1.5px solid #dde3ec;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  font-weight: 500;
   cursor: pointer;
   text-align: left;
-  transition: all 0.2s ease;
+  transition: all 0.13s;
+  font-family: var(--font-sans);
 }
 
 .chip:hover {
-  border-color: #cbd5e1;
-  background: #f1f5f9;
+  border-color: #b0bbd4;
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .chip--active {
-  background: var(--color-structure-base, #3b82f6);
-  border-color: var(--color-structure-base, #3b82f6);
-  color: #ffffff;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+  background: var(--color-structure-base);
+  border-color: var(--color-structure-base);
+  color: #fff;
+  font-weight: 600;
 }
 
 /* Date Inputs */
 .fecha-inputs {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .input-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .input-group label {
-  font-size: 0.8rem;
-  color: #64748b;
-  font-weight: 600;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
 }
 
 /* Checkboxes */
@@ -989,70 +991,56 @@ function limpiarFiltros() {
   list-style: none;
   padding: 0;
   margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
 }
 
 .col-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px;
-  border-radius: 8px;
+  gap: 8px;
+  padding: 4px 2px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 0.9rem;
-  color: #334155;
-  font-weight: 500;
-  transition: background 0.2s;
+  font-size: 0.83rem;
+  color: var(--color-text-secondary);
+  transition: background 0.12s;
   user-select: none;
 }
 
 .col-item:hover {
-  background: #f1f5f9;
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .checkbox {
-  width: 20px;
-  height: 20px;
-  border: 2px solid #cbd5e1;
-  border-radius: 6px;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #b0bbd4;
+  border-radius: 3px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background: #ffffff;
-  transition: all 0.2s;
+  background: #fff;
+  transition: all 0.14s;
 }
 
 .checkbox.checked {
-  background: var(--color-structure-base, #3b82f6);
-  border-color: var(--color-structure-base, #3b82f6);
+  background: #4a90d9;
+  border-color: #4a90d9;
 }
 
 .checkbox__check {
-  width: 14px;
-  height: 14px;
-  color: #ffffff;
+  width: 10px;
+  height: 10px;
+  color: #fff;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 900px) {
   .content-container {
     flex-direction: column;
   }
+
   .filtros-panel {
     width: 100%;
-    order: -1;
-  }
-  .filtros-chips {
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
-  .fecha-inputs {
-    flex-direction: row;
-  }
-  .input-group {
-    flex: 1;
   }
 }
 </style>
