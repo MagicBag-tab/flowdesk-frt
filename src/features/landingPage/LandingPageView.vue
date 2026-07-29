@@ -22,11 +22,6 @@
 
         <div class="hero__left">
 
-          <div class="hero__eyebrow">
-            <span class="hero__eyebrow-dot"></span>
-            Plataforma inteligente para empresas
-          </div>
-
           <h1 class="hero__heading">
             Todo tu negocio,<br />
             <em>en un solo lugar</em>
@@ -82,22 +77,45 @@
     </section>
 
     <section class="features">
-      <p class="section-eyebrow">Lo que puedes hacer</p>
-      <h2 class="section-title">Una plataforma, muchas soluciones</h2>
-      <p class="section-sub">
-        Diseñada para que los negocios de todos los tamaños operen con claridad, eficiencia y sin fricciones.
-      </p>
+      <p class="section-eyebrow">Funcionalidades</p>
+      <h2 class="section-title">Con Flowdesk podrás:</h2>
 
       <div class="features__grid">
-        <div v-for="feat in features" :key="feat.title" class="feature-card">
-          <div class="feature-card__icon" v-html="feat.icon" />
+        <div
+          v-for="feat in features"
+          :key="feat.title"
+          class="feature-card"
+          :style="{ '--card-accent': feat.accent, '--card-accent-soft': feat.accentSoft }"
+        >
+          <div class="feature-card__icon" :style="{ background: feat.accent }" v-html="feat.icon" />
           <p class="feature-card__title">{{ feat.title }}</p>
           <p class="feature-card__desc">{{ feat.desc }}</p>
         </div>
       </div>
     </section>
 
-    <!-- ── MISSION & VISION ──────────────────────────────── -->
+    <section class="benefits">
+      <div class="benefits__inner">
+        <div class="benefits__intro">
+          <p class="section-eyebrow section-eyebrow--left">Beneficios</p>
+          <h2 class="benefits__title">Beneficios de trabajar con nosotros</h2>
+          <p class="benefits__text">
+            FlowDesk no solo organiza tu operación: la hace más rápida, más precisa y más fácil de escalar.
+          </p>
+        </div>
+
+        <div class="benefits__list">
+          <div v-for="benefit in benefits" :key="benefit.title" class="benefit-item">
+            <div class="benefit-item__icon" :style="{ background: benefit.accentSoft, color: benefit.accent }" v-html="benefit.icon" />
+            <div>
+              <h3 class="benefit-item__title">{{ benefit.title }}</h3>
+              <p class="benefit-item__desc">{{ benefit.desc }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="mission">
       <div class="mission__inner">
         <div v-for="block in missionBlocks" :key="block.label" class="mission__block">
@@ -108,7 +126,6 @@
       </div>
     </section>
 
-    <!-- ── FOOTER ───────────────────────────────────────── -->
     <footer class="footer">
       <span class="footer__copy">© 2025 FlowDesk. Todos los derechos reservados.</span>
 
@@ -133,53 +150,99 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll));
 
 const features = [
   {
-    title: 'Inventario inteligente',
-    desc: 'Controla tu stock en tiempo real. Recibe alertas de bajo inventario, importa productos desde Excel y visualiza el estado de cada artículo al instante.',
-    icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--color-structure-base)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    title: 'Control total de tu inventario',
+    desc: 'Sabe exactamente qué tienes, dónde está y cuándo se agota, con alertas automáticas de bajo stock.',
+    accent: 'var(--color-accent)',
+    accentSoft: 'var(--color-accent-subtle)',
+    icon: `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <rect x="2" y="3" width="20" height="14" rx="2"/>
       <path d="M8 21h8M12 17v4"/>
     </svg>`,
   },
   {
-    title: 'Movimientos de inventario',
-    desc: 'Registra entradas, salidas, ajustes y devoluciones. Mantén un historial completo y filtra por fecha, tipo o producto con facilidad.',
-    icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--color-structure-base)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M4 4h16v16H4z"/>
-      <path d="M8 2v4M16 2v4M8 18v4M16 18v4M2 8h4M2 16h4M18 8h4M18 16h4"/>
+    title: 'Trazabilidad completa de movimientos',
+    desc: 'Cada entrada, salida y ajuste queda registrado con su historial completo, sin hojas de cálculo paralelas.',
+    accent: 'var(--color-structure-hover)',
+    accentSoft: 'var(--color-structure-subtle)',
+    icon: `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+      <path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
     </svg>`,
   },
   {
-    title: 'Análisis y reportes',
-    desc: 'Visualiza tendencias de entradas y salidas, identifica productos de alto riesgo y toma decisiones basadas en datos reales de tu operación.',
-    icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--color-structure-base)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    title: 'Importación masiva desde Excel',
+    desc: 'Sube tu catálogo completo de productos en segundos, sin capturarlo uno por uno.',
+    accent: 'var(--color-warning)',
+    accentSoft: 'var(--color-warning-bg)',
+    icon: `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>`,
+  },
+  {
+    title: 'Reportes y análisis en tiempo real',
+    desc: 'Cada movimiento se refleja de inmediato en tus reportes, así siempre decides con datos reales.',
+    accent: 'var(--color-accent)',
+    accentSoft: 'var(--color-accent-subtle)',
+    icon: `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <line x1="18" y1="20" x2="18" y2="10"/>
       <line x1="12" y1="20" x2="12" y2="4"/>
       <line x1="6" y1="20" x2="6" y2="14"/>
     </svg>`,
   },
   {
-    title: 'Gestión de empleados',
-    desc: 'Agrega colaboradores, asigna roles y controla el acceso según responsabilidades. Administra tu equipo desde un único panel centralizado.',
-    icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--color-structure-base)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    title: 'Empleados y roles bajo control',
+    desc: 'Agrega colaboradores, define permisos por rol y mantén cada acción alineada con la responsabilidad de tu equipo.',
+    accent: 'var(--color-structure-hover)',
+    accentSoft: 'var(--color-structure-subtle)',
+    icon: `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
       <circle cx="9" cy="7" r="4"/>
       <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
       <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
     </svg>`,
   },
+];
+
+const benefits = [
   {
-    title: 'Roles y permisos',
-    desc: 'Define quién puede ver qué. Administradores, managers y empleados tienen vistas y acciones adaptadas a su nivel de responsabilidad.',
-    icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--color-structure-base)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    title: 'Ahorra horas cada semana',
+    desc: 'Automatiza tareas manuales de inventario y reportes para que tu equipo se enfoque en crecer, no en hojas de cálculo.',
+    accent: 'var(--color-accent)',
+    accentSoft: 'var(--color-accent-subtle)',
+    icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <polyline points="12 6 12 12 16 14"/>
     </svg>`,
   },
   {
-    title: 'Datos siempre actualizados',
-    desc: 'Cada acción se refleja de inmediato en toda la plataforma. Sin desincronizaciones, sin datos viejos. Tu operación, en vivo.',
-    icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--color-structure-base)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+    title: 'Reduce errores costosos',
+    desc: 'Datos centralizados y sincronizados en tiempo real eliminan discrepancias entre lo que crees tener y lo que realmente tienes.',
+    accent: 'var(--color-success)',
+    accentSoft: 'var(--color-success-bg)',
+    icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      <polyline points="9 12 11 14 15 10"/>
+    </svg>`,
+  },
+  {
+    title: 'Escala sin fricciones',
+    desc: 'Agrega productos, empleados y sucursales sin rediseñar tu operación desde cero.',
+    accent: 'var(--color-structure-hover)',
+    accentSoft: 'var(--color-structure-subtle)',
+    icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+      <polyline points="17 6 23 6 23 12"/>
+    </svg>`,
+  },
+  {
+    title: 'Decide con confianza',
+    desc: 'Reportes claros y actualizados al instante te dan la certeza para tomar decisiones de negocio.',
+    accent: 'var(--color-warning)',
+    accentSoft: 'var(--color-warning-bg)',
+    icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/>
+      <circle cx="12" cy="12" r="3"/>
     </svg>`,
   },
 ];
@@ -234,21 +297,6 @@ const missionBlocks = [
 @keyframes slideDown {
   from { transform: translateY(-100%); opacity: 0; }
   to   { transform: translateY(0);     opacity: 1; }
-}
-
-/* Logo placeholder — el usuario reemplaza con <img> */
-.navbar__logo-placeholder {
-  width: 160px;
-  height: 38px;
-  border: 1.5px dashed rgba(255, 255, 255, 0.25);
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: rgba(255, 255, 255, 0.35);
-  font-size: 0.72rem;
-  font-weight: 500;
-  letter-spacing: 0.06em;
 }
 
 .navbar__logo-img {
@@ -403,7 +451,7 @@ const missionBlocks = [
 }
 .hero__heading em {
   font-style: italic;
-  color: var(--color-warning-hover);
+  color: var(--color-warning);
 }
 
 .hero__sub {
@@ -505,17 +553,20 @@ const missionBlocks = [
 /* ── FEATURES ───────────────────────────────────────────── */
 .features {
   background: var(--color-bg-app);
-  padding: 100px 24px;
+  padding: 130px 24px 120px;
 }
 
 .section-eyebrow {
   text-align: center;
   font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--color-text-muted);
-  margin: 0 0 12px;
+  color: var(--color-accent);
+  margin: 0 0 14px;
+}
+.section-eyebrow--left {
+  text-align: left;
 }
 
 .section-title {
@@ -524,7 +575,7 @@ const missionBlocks = [
   font-weight: 400;
   color: var(--color-structure-base);
   text-align: center;
-  margin: 0 0 16px;
+  margin: 0 0 64px;
   line-height: 1.2;
 }
 
@@ -541,47 +592,145 @@ const missionBlocks = [
 .features__grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  max-width: 1060px;
+  gap: 36px;
+  max-width: 1100px;
   margin: 0 auto;
 }
 
 .feature-card {
   background: var(--color-bg-surface);
-  border: 1.5px solid var(--color-structure-subtle);
-  border-radius: 16px;
-  padding: 28px;
-  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  border: 1px solid var(--color-structure-subtle);
+  border-radius: 14px;
+  padding: 44px 32px;
+  text-align: center;
+  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
   box-shadow: var(--shadow-card);
+  position: relative;
 }
 .feature-card:hover {
-  border-color: #b0bbd4;
-  box-shadow: 0 8px 40px rgba(13, 17, 24, 0.14);
-  transform: translateY(-3px);
+  background: var(--card-accent-soft);
+  border-color: var(--card-accent);
+  box-shadow: 0 20px 40px rgba(13, 17, 24, 0.1);
+  transform: translateY(-5px);
+  z-index: 1;
 }
 
 .feature-card__icon {
-  width: 46px;
-  height: 46px;
-  border-radius: 12px;
-  background: var(--color-structure-subtle);
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 18px;
+  margin: 0 auto 24px;
+  color: #fff;
   flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+.feature-card:hover .feature-card__icon {
+  transform: scale(1.06);
 }
 
 .feature-card__title {
-  font-size: 1rem;
-  font-weight: 600;
+  font-family: 'DM Serif Display', var(--font-sans);
+  font-size: 1.15rem;
+  font-weight: 400;
   color: var(--color-structure-base);
-  margin: 0 0 8px;
+  margin: 0 0 10px;
   letter-spacing: -0.01em;
+  line-height: 1.35;
 }
 
 .feature-card__desc {
   font-size: 0.875rem;
+  color: var(--color-text-muted);
+  line-height: 1.65;
+  font-weight: 300;
+  margin: 0;
+}
+
+/* ── BENEFITS ───────────────────────────────────────────── */
+.benefits {
+  background: var(--color-bg-surface);
+  padding: 110px 24px;
+}
+
+.benefits__inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 64px;
+  align-items: start;
+}
+
+.benefits__intro {
+  position: sticky;
+  top: 120px;
+}
+
+.benefits__title {
+  font-family: 'DM Serif Display', var(--font-sans);
+  font-size: clamp(1.6rem, 3vw, 2.3rem);
+  font-weight: 400;
+  color: var(--color-structure-base);
+  margin: 0 0 16px;
+  line-height: 1.25;
+}
+
+.benefits__text {
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  line-height: 1.7;
+  font-weight: 300;
+  margin: 0;
+}
+
+.benefits__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.benefit-item {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  padding: 18px;
+  margin: 0 -18px;
+  border-radius: 14px;
+  transition: background 0.25s ease;
+}
+.benefit-item:hover {
+  background: var(--color-bg-row-alt);
+}
+
+.benefit-item__icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+.benefit-item:hover .benefit-item__icon {
+  transform: scale(1.08);
+}
+
+.benefit-item__title {
+  font-family: 'DM Serif Display', var(--font-sans);
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: var(--color-structure-base);
+  margin: 0 0 8px;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.benefit-item__desc {
+  font-size: 0.9rem;
   color: var(--color-text-muted);
   line-height: 1.65;
   font-weight: 300;
@@ -680,6 +829,8 @@ const missionBlocks = [
 
 @media (max-width: 900px) {
   .features__grid { grid-template-columns: repeat(2, 1fr); }
+  .benefits__inner { grid-template-columns: 1fr; gap: 40px; }
+  .benefits__intro { position: static; }
   .mission__inner { grid-template-columns: 1fr; gap: 40px; }
 }
 
