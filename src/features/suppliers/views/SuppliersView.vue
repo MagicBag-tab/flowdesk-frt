@@ -294,30 +294,39 @@ onMounted(() => {
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  text-align: left;
+  font-size: 0.875rem;
+}
+
+.data-table thead tr {
+  background: var(--color-structure-base);
 }
 
 .data-table th {
-  background: #f8fafc;
-  padding: 16px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-bottom: 1px solid #e2e8f0;
+  padding: 13px 20px;
+  text-align: left;
+  font-weight: 700;
+  color: #f0f4f9;
+  font-size: 0.82rem;
+  white-space: nowrap;
 }
 
-.data-table td {
-  padding: 16px;
-  border-bottom: 1px solid #f1f5f9;
-  color: #334155;
-  font-size: 0.95rem;
-  vertical-align: middle;
+.data-table tbody tr {
+  border-bottom: 1px solid #f0f4f9;
+  transition: background 0.12s;
+}
+
+.data-table tbody tr:last-child {
+  border-bottom: none;
 }
 
 .data-table tbody tr:hover {
-  background-color: #f8fafc;
+  background: #f8fafc;
+}
+
+.data-table td {
+  padding: 13px 20px;
+  vertical-align: middle;
+  color: var(--color-text-secondary);
 }
 
 .font-medium {
