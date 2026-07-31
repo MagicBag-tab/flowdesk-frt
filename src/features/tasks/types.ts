@@ -1,6 +1,6 @@
-export type TaskStatus = 'Pendiente' | 'En progreso' | 'Completada';
+export type TaskStatus = | 'Pendiente' | 'En progreso' | 'Completada';
 
-export type TaskPriority = 'Alta' | 'Media' | 'Baja';
+export type TaskPriority = | 'Sin prioridad'| 'Alta' | 'Media' | 'Baja';
 
 export interface Task {
   id: number;

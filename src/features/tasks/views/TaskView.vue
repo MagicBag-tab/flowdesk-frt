@@ -8,19 +8,24 @@
         </p>
       </div>
 
-      <button class="btn-create">
+      <button
+        class="btn-create"
+        @click="showCreateModal = true"
+      >
         + Nueva tarea
       </button>
     </div>
 
     <TaskSummaryCards :tasks="tasks" />
 
-        <TaskFilters
-        @change="updateFilters"
-        />
+        <TaskFilters @change="updateFilters" />
 
-        <TaskTable
-        :tasks="tasks"
+        <TaskTable :tasks="tasks"/>
+        
+        <TaskCreateModal
+          v-if="showCreateModal"
+          @close="showCreateModal = false"
+          @create="createTask"
         />
     </div>
 </template>
@@ -30,15 +35,20 @@ import TaskSummaryCards from '../components/TaskSummaryCards.vue';
 import { mockTasks } from '../data/mockTasks';
 import TaskTable from '../components/TaskTable.vue';
 import TaskFilters from '../components/TaskFilters.vue';
+import TaskCreateModal from '../components/TaskCreateModal.vue';
 
 import { ref, computed } from 'vue';
+import type { Task } from '../types';
 
 const search = ref('');
 const status = ref('');
 const priority = ref('');
+const showCreateModal = ref(false);
+
+const taskList = ref([...mockTasks]);
 
 const tasks = computed(() => {
-  return mockTasks.filter(task => {
+  return taskList.value.filter(task => {
 
     const matchesSearch =
       task.title.toLowerCase().includes(search.value.toLowerCase()) ||
@@ -62,6 +72,14 @@ function updateFilters(filters: {
   search.value = filters.search;
   status.value = filters.status;
   priority.value = filters.priority;
+}
+
+function createTask(task: Task) {
+
+  taskList.value.unshift(task);
+
+  showCreateModal.value = false;
+
 }
 </script>
 
