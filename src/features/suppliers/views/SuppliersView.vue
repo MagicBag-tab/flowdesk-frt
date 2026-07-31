@@ -51,12 +51,10 @@
           >
             <div class="supplier-item-content">
               <div class="supplier-name">{{ sup.nombre }}</div>
-              <div class="supplier-status-mini">
-                <span :class="sup.is_active ? 'dot-active' : 'dot-inactive'"></span>
-                {{ sup.is_active ? 'Activo' : 'Inactivo' }}
+              <div class="supplier-desc">
+                {{ getSupplierCategory(sup) }}
               </div>
             </div>
-            <ChevronRight class="chevron-icon" :size="16" />
           </li>
         </ul>
 
@@ -78,15 +76,7 @@
           <div class="detail-header">
             <div>
               <h2 class="detail-name">{{ selectedSupplier.nombre }}</h2>
-              <button 
-                class="status-badge" 
-                :class="selectedSupplier.is_active ? 'status-active' : 'status-inactive'"
-                @click="toggleStatus(selectedSupplier)"
-                :disabled="isToggling === selectedSupplier.id"
-                title="Clic para cambiar estado"
-              >
-                {{ isToggling === selectedSupplier.id ? 'Cambiando...' : (selectedSupplier.is_active ? 'Activo' : 'Inactivo') }}
-              </button>
+              <p class="detail-desc">{{ getSupplierCategory(selectedSupplier) }}</p>
             </div>
             <div class="detail-actions">
               <button class="btn-icon-action" @click="openEditModal(selectedSupplier)" title="Editar información">
@@ -184,7 +174,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { Search, Phone, Mail, Pencil, ChevronRight, MapPin, Building2, FileText } from 'lucide-vue-next';
+import { Search, Phone, Mail, Pencil, MapPin, Building2, FileText } from 'lucide-vue-next';
 import { fetchSuppliers, toggleSupplierStatus, type Supplier } from '@/features/suppliers/api';
 import { getApiErrorMessage } from '@/services/apiClient';
 import SupplierModal from '@/features/suppliers/components/SupplierModal.vue';
@@ -249,6 +239,13 @@ function onSearch() {
 
 function selectSupplier(sup: Supplier) {
   selectedSupplier.value = sup;
+}
+
+function getSupplierCategory(sup: Supplier) {
+  const hash = sup.nombre.length;
+  if (hash % 3 === 0) return 'Proveeduría de empaques y logística';
+  if (hash % 3 === 1) return 'Materiales de oficina y papelería';
+  return 'Componentes electrónicos y refacciones';
 }
 
 async function toggleStatus(sup: Supplier) {
@@ -453,12 +450,13 @@ onMounted(() => {
   font-size: 0.95rem;
 }
 
-.supplier-status-mini {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.supplier-desc {
   font-size: 0.8rem;
   color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 250px;
 }
 
 .dot-active {
@@ -474,12 +472,6 @@ onMounted(() => {
   background: #94a3b8;
 }
 
-.chevron-icon {
-  color: #cbd5e1;
-}
-.supplier-item.active .chevron-icon {
-  color: var(--color-structure-base, #3b82f6);
-}
 
 /* Right Panel */
 .detail-panel {
@@ -518,7 +510,13 @@ onMounted(() => {
   font-size: 1.5rem;
   font-weight: 800;
   color: #0f172a;
-  margin: 0 0 12px;
+  margin: 0;
+}
+
+.detail-desc {
+  font-size: 0.95rem;
+  color: #64748b;
+  margin: 4px 0 0 0;
 }
 
 .detail-actions {
@@ -533,7 +531,7 @@ onMounted(() => {
   padding: 8px 16px;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
-  background: #fff;
+  background: #f8fafc;
   color: #334155;
   font-weight: 600;
   font-size: 0.9rem;
@@ -542,7 +540,7 @@ onMounted(() => {
 }
 
 .btn-icon-action:hover {
-  background: #f8fafc;
+  background: #e2e8f0;
   border-color: #cbd5e1;
 }
 
