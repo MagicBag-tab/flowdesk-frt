@@ -78,42 +78,44 @@
               <span v-for="tick in yTicks" :key="tick.label">{{ tick.label }}</span>
             </div>
 
-            <svg
-              class="chart-svg"
-              :viewBox="`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`"
-              preserveAspectRatio="none"
-              aria-hidden="true"
-            >
-              <line
-                v-for="tick in yTicks"
-                :key="tick.y"
-                class="chart-grid-line"
-                x1="0"
-                :x2="CHART_WIDTH"
-                :y1="tick.y"
-                :y2="tick.y"
-              />
-              <path class="chart-area chart-area--in" :d="inboundAreaPath" />
-              <path class="chart-area chart-area--out" :d="outboundAreaPath" />
-              <polyline class="chart-line chart-line--in" :points="inboundPolyline" />
-              <polyline class="chart-line chart-line--out" :points="outboundPolyline" />
-              <circle
-                v-for="point in inboundChartPoints"
-                :key="`in-${point.label}`"
-                class="chart-point chart-point--in"
-                :cx="point.x"
-                :cy="point.y"
-                r="3"
-              />
-              <circle
-                v-for="point in outboundChartPoints"
-                :key="`out-${point.label}`"
-                class="chart-point chart-point--out"
-                :cx="point.x"
-                :cy="point.y"
-                r="3"
-              />
-            </svg>
+            <div class="chart-drawing-area">
+              <svg
+                class="chart-svg"
+                :viewBox="`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`"
+                preserveAspectRatio="none"
+                aria-hidden="true"
+              >
+                <line
+                  v-for="tick in yTicks"
+                  :key="tick.y"
+                  class="chart-grid-line"
+                  x1="0"
+                  :x2="CHART_WIDTH"
+                  :y1="tick.y"
+                  :y2="tick.y"
+                />
+                <path class="chart-area chart-area--in" :d="inboundAreaPath" />
+                <path class="chart-area chart-area--out" :d="outboundAreaPath" />
+                <polyline class="chart-line chart-line--in" :points="inboundPolyline" />
+                <polyline class="chart-line chart-line--out" :points="outboundPolyline" />
+              </svg>
+
+              <!-- Puntos HTML para que no se deformen con el responsive del SVG -->
+              <div class="chart-points-overlay" aria-hidden="true">
+                <span
+                  v-for="point in inboundChartPoints"
+                  :key="`in-${point.label}`"
+                  class="html-point html-point--in"
+                  :style="{ left: `${(point.x / CHART_WIDTH) * 100}%`, top: `${(point.y / CHART_HEIGHT) * 100}%` }"
+                ></span>
+                <span
+                  v-for="point in outboundChartPoints"
+                  :key="`out-${point.label}`"
+                  class="html-point html-point--out"
+                  :style="{ left: `${(point.x / CHART_WIDTH) * 100}%`, top: `${(point.y / CHART_HEIGHT) * 100}%` }"
+                ></span>
+              </div>
+            </div>
           </div>
 
           <div class="chart-x-axis" aria-hidden="true">
@@ -423,8 +425,13 @@ onMounted(loadAll);
 
 <style scoped>
 .analytics-page {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
   padding: 32px 36px;
   min-height: 100vh;
+  max-width: 1200px;
+  margin: 0 auto;
   font-family: var(--font-sans);
   color: var(--color-text);
   display: flex;
@@ -541,6 +548,10 @@ onMounted(loadAll);
 }
 
 .chart-section {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
   background: var(--color-bg-surface);
   border: 1.5px solid var(--color-structure-subtle);
   border-radius: 14px;
@@ -569,6 +580,8 @@ onMounted(loadAll);
   color: #fff;
 }
 .chart-wrapper {
+  width: 100%;
+  min-width: 0;
   height: 280px;
   position: relative;
 }
@@ -577,6 +590,7 @@ onMounted(loadAll);
 }
 .trend-chart {
   width: 100%;
+  min-width: 0;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -605,9 +619,11 @@ onMounted(loadAll);
 .chart-legend__swatch--out { background: #e65100; }
 .chart-plot {
   flex: 1;
+  width: 100%;
   min-height: 0;
+  min-width: 0;
   display: grid;
-  grid-template-columns: 52px 1fr;
+  grid-template-columns: 52px minmax(0, 1fr);
   gap: 10px;
 }
 .chart-y-axis {
@@ -619,10 +635,18 @@ onMounted(loadAll);
   font-size: 0.72rem;
   line-height: 1;
 }
-.chart-svg {
+.chart-drawing-area {
+  position: relative;
   width: 100%;
   height: 100%;
-  overflow: visible;
+  min-width: 0;
+  overflow: hidden;
+}
+.chart-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 .chart-grid-line {
   stroke: rgba(0, 0, 0, 0.06);
@@ -643,15 +667,32 @@ onMounted(loadAll);
 }
 .chart-line--in { stroke: #2e7d32; }
 .chart-line--out { stroke: #e65100; }
-.chart-point {
-  stroke: #fff;
-  stroke-width: 1.5;
-  vector-effect: non-scaling-stroke;
+
+.chart-points-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
 }
-.chart-point--in { fill: #2e7d32; }
-.chart-point--out { fill: #e65100; }
+.html-point {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px solid #fff;
+  z-index: 2;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.html-point--in { background: #2e7d32; }
+.html-point--out { background: #e65100; }
+
 .chart-x-axis {
   position: relative;
+  width: auto;
+  min-width: 0;
   height: 18px;
   margin-left: 62px;
   color: var(--color-text-muted);
@@ -665,6 +706,26 @@ onMounted(loadAll);
   text-overflow: ellipsis;
   transform: translateX(-50%);
   white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .analytics-page {
+    padding: 24px 16px;
+  }
+
+  .chart-section,
+  .products-section {
+    padding: 18px 16px;
+  }
+
+  .chart-plot {
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .chart-x-axis {
+    margin-left: 48px;
+  }
 }
 .chart-empty {
   height: 100%;
