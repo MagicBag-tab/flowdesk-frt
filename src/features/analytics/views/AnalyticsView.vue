@@ -152,20 +152,20 @@
             <tr>
               <th>Producto</th>
               <th>SKU</th>
-              <th class="th-right">Entradas</th>
-              <th class="th-right">Salidas</th>
-              <th class="th-right">Stock actual</th>
-              <th class="th-right">Riesgo</th>
+              <th>Entradas</th>
+              <th>Salidas</th>
+              <th>Stock actual</th>
+              <th>Riesgo</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="p in topProducts" :key="p.product_id">
               <td class="td-name">{{ p.nombre }}</td>
               <td class="td-sku">{{ p.sku }}</td>
-              <td class="td-right td-in">+{{ fmt(p.inbound_quantity) }}</td>
-              <td class="td-right td-out">-{{ fmt(p.outbound_quantity) }}</td>
-              <td class="td-right">{{ fmt(p.ending_stock) }}</td>
-              <td class="td-right">
+              <td class="td-in">+{{ fmt(p.inbound_quantity) }}</td>
+              <td class="td-out">-{{ fmt(p.outbound_quantity) }}</td>
+              <td>{{ fmt(p.ending_stock) }}</td>
+              <td>
                 <span class="risk-badge" :class="riskClass(p.stock_risk_score)">
                   {{ riskLabel(p.stock_risk_score) }}
                 </span>
@@ -771,13 +771,12 @@ onMounted(loadAll);
 .products-table thead tr { background: var(--color-structure-base); }
 .products-table th {
   padding: 12px 16px;
-  text-align: left;
+  text-align: center;
   font-weight: 700;
   color: #f0f4f9;
   font-size: 0.8rem;
   white-space: nowrap;
 }
-.th-right { text-align: right; }
 .products-table tbody tr {
   border-bottom: 1px solid #f0f4f9;
   transition: background 0.12s;
@@ -787,11 +786,12 @@ onMounted(loadAll);
 .products-table td {
   padding: 12px 16px;
   vertical-align: middle;
+  text-align: center;
   color: var(--color-text-secondary);
+  font-weight: 600;
 }
-.td-name { font-weight: 600; color: var(--color-structure-base); }
+.td-name { color: var(--color-structure-base); }
 .td-sku { font-size: 0.78rem; color: var(--color-text-muted); font-family: monospace; }
-.td-right { text-align: right; font-weight: 600; }
 .td-in { color: #2e7d32; }
 .td-out { color: #e65100; }
 
