@@ -1,11 +1,13 @@
-export type TasksFeatureStatus = 'placeholder';
+export type TaskStatus = 'Pendiente' | 'En progreso' | 'Completada';
 
-export interface TasksFeaturePlaceholder {
-  status: TasksFeatureStatus;
-  summary: string;
+export type TaskPriority = 'Alta' | 'Media' | 'Baja';
+
+export interface Task {
+  id: number;
+  title: string;
+  description: string;
+  assignee: string;
+  priority: TaskPriority;
+  status: TaskStatus;
+  dueDate: string;
 }
-
-export const tasksFeaturePlaceholder: TasksFeaturePlaceholder = {
-  status: 'placeholder',
-  summary: 'El modulo de tareas no se implementa en esta fase porque el enfoque actual esta en autenticacion y onboarding.',
-};

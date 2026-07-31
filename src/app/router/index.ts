@@ -5,7 +5,7 @@ import MainLayout from '@/app/layouts/MainLayout.vue';
 import LoginView from '@/features/auth/views/LoginView.vue';
 import ForgotPasswordView from '@/features/auth/views/ForgotPasswordView.vue';
 import RegisterCompanyView from '@/features/auth/views/RegisterCompanyView.vue';
-import InventoryView from '@/features/inventory/views/InventoryView.vue';
+import TaskView from '@/features/tasks/views/TaskView.vue';
 import SuperAdminView from '@/features/roles/views/SuperAdminView.vue';
 import { appStore } from '@/stores/app.store';
 import { resolveHomeByRole } from '@/utils/roles';
@@ -16,6 +16,7 @@ import ResetPasswordView from '@/features/auth/views/ResetPasswordView.vue';
 import AnalyticsView from '@/features/analytics/views/AnalyticsView.vue';
 import EmployeesView from '@/features/employees/views/EmployeeView.vue';
 import LandingPageView from '@/features/landingPage/LandingPageView.vue';
+
 
 
 declare module 'vue-router' {
@@ -105,7 +106,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: "inventory",
         name: "inventory",
-        component: InventoryView,
+        component: TaskView,
         meta: {
           requiresAuth: true,
           requiresRole: ['admin', 'manager', 'employee'],
