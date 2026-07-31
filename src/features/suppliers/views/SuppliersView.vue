@@ -352,14 +352,14 @@ onMounted(() => {
   display: grid;
   grid-template-columns: 320px 1fr;
   gap: 24px;
-  align-items: start;
+  align-items: stretch;
 }
 
 /* Left Panel */
 .master-panel {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 180px); /* Ajustar según nav */
+  height: 100%;
   max-height: 800px;
 }
 
@@ -400,12 +400,17 @@ onMounted(() => {
 
 .filter-select {
   width: 100%;
-  padding: 8px 12px;
+  padding: 8px 32px 8px 12px;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   font-size: 0.85rem;
   background: #f8fafc;
   cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 14px;
 }
 
 .supplier-list {
@@ -479,7 +484,9 @@ onMounted(() => {
 /* Right Panel */
 .detail-panel {
   padding: 32px;
-  min-height: calc(100vh - 180px);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .empty-detail {
