@@ -73,7 +73,17 @@ function buildUrl(path: string): string {
   }
 
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-  return `${appEnv.apiBaseUrl}${normalizedPath}`;
+  const baseUrl = appEnv.apiBaseUrl.replace(/\/+$/, '');
+
+  if (!baseUrl) {
+    return normalizedPath;
+  }
+
+  if (import.meta.env.PROD && baseUrl === '/api') {
+    return `${baseUrl}${normalizedPath}`;
+  }
+
+  return `${baseUrl}${normalizedPath}`;
 }
 
 export function getApiErrorMessage(error: unknown): string {

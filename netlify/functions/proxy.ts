@@ -1,6 +1,6 @@
 import type { Handler } from '@netlify/functions';
 
-const API_BASE = 'http://3.235.13.20';
+const API_BASE = (process.env.API_BASE_URL ?? process.env.VITE_API_BASE_URL ?? 'http://98.92.232.157').replace(/\/+$/, '');
 
 export const handler: Handler = async (event) => {
   const path = event.path.replace('/.netlify/functions/proxy', '');

@@ -1,9 +1,12 @@
 import { fileURLToPath, URL } from 'node:url';
-import { defineConfig } from 'vitest/config';
+import { defineConfig, loadEnv } from 'vite';
 import vue from '@vitejs/plugin-vue';
 
-export default defineConfig({
-  plugins: [vue()],
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+
+  return {
+    plugins: [vue()],
 
   resolve: {
     alias: {
@@ -11,22 +14,23 @@ export default defineConfig({
     },
   },
 
-  server: {
-    proxy: {
-      '/api': {
-        target: 'http://98.92.232.157',
-        changeOrigin: true,
+    server: {
+      proxy: {
+        '/api': {
+          target: env.VITE_PROXY_TARGET || 'http://localhost:8000',
+          changeOrigin: true,
+        }
       }
-    }
-  },
+    },
 
   preview: {
     host: '0.0.0.0',
     port: 4173,
   },
 
-  test: {
-    globals: true,
-    environment: 'jsdom'
-  }
+    test: {
+      globals: true,
+      environment: 'jsdom'
+    }
+  };
 });
