@@ -17,15 +17,12 @@
     </div>
 
     <TaskSummaryCards :tasks="tasks" />
-
         <TaskFilters @change="updateFilters" />
 
         <TaskTable
-
           :tasks="tasks"
-
           @edit="editTask"
-
+          @status-change="updateStatus"
         />
         
         <TaskCreateModal
@@ -44,24 +41,22 @@
 </template>
 
 <script setup lang="ts">
+
 import TaskSummaryCards from '../components/TaskSummaryCards.vue';
 import { mockTasks } from '../data/mockTasks';
 import TaskTable from '../components/TaskTable.vue';
 import TaskFilters from '../components/TaskFilters.vue';
 import TaskCreateModal from '../components/TaskCreateModal.vue';
 import TaskEditModal from '../components/TaskEditModal.vue';
-
 import { ref, computed } from 'vue';
-import type { Task } from '../types';
+import type { Task, TaskStatus } from '../types';
 
 const search = ref('');
 const status = ref('');
 const priority = ref('');
 const showCreateModal = ref(false);
 const showEditModal = ref(false);
-
 const selectedTask = ref<Task | null>(null);
-
 const taskList = ref([...mockTasks]);
 
 const tasks = computed(() => {
@@ -81,6 +76,12 @@ const tasks = computed(() => {
   });
 });
 
+function updateStatus(id: number, status: TaskStatus) {
+  const task = taskList.value.find(task => task.id === id);
+  if (!task) return;
+  task.status = status;
+}
+
 function updateFilters(filters: {
   search: string;
   status: string;
@@ -92,31 +93,22 @@ function updateFilters(filters: {
 }
 
 function createTask(task: Task) {
-
   taskList.value.unshift(task);
-
   showCreateModal.value = false;
-
 }
 
 function editTask(task: Task){
-
   selectedTask.value = task;
-
   showEditModal.value = true;
-
 }
 
 function updateTask(updatedTask: Task) {
-
   const index = taskList.value.findIndex(
     task => task.id === updatedTask.id,
   );
 
   if (index === -1) return;
-
   taskList.value.splice(index, 1, updatedTask);
-
   showEditModal.value = false;
 }
 

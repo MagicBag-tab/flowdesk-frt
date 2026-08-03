@@ -36,12 +36,31 @@
           </td>
 
           <td>
-            <span
-              class="badge"
-              :class="statusClass(task.status)"
-            >
-              {{ task.status }}
-            </span>
+            <div class="status-wrapper">
+
+              <select
+                class="status-select"
+                :class="statusClass(task.status)"
+                :value="task.status"
+                @change="
+                  emit(
+                    'status-change',
+                    task.id,
+                    ($event.target as HTMLSelectElement).value as TaskStatus
+                  )
+                "
+              >
+                <option value="Pendiente">Pendiente</option>
+                <option value="En progreso">En progreso</option>
+                <option value="Completada">Completada</option>
+              </select>
+
+              <ChevronDown
+                :size="14"
+                class="status-arrow"
+              />
+
+            </div>
           </td>
 
           <td>{{ formatDate(task.dueDate) }}</td>
@@ -69,6 +88,7 @@
 </template>
 
 <script setup lang="ts">
+import { ChevronDown } from 'lucide-vue-next';
 import type { Task, TaskPriority, TaskStatus } from '../types';
 
 defineProps<{
@@ -77,6 +97,7 @@ defineProps<{
 
 const emit = defineEmits<{
   (e: 'edit', task: Task): void;
+  (e: 'status-change', id: number, status: TaskStatus): void;
 }>();
 
 function priorityClass(priority: TaskPriority) {
@@ -197,22 +218,44 @@ function formatDate(date: string): string {
 }
 
 .btn-edit{
-
   border:none;
-
   background:transparent;
-
   cursor:pointer;
-
   font-size:1.1rem;
-
   transition:.2s;
-
 }
 
 .btn-edit:hover{
-
   transform:scale(1.15);
 
 }
+
+.status-wrapper{
+  position:relative;
+  display:inline-block;
+
+}
+
+.status-select{
+  appearance:none;
+  border:none;
+  cursor:pointer;
+  border-radius:999px;
+  padding:6px 34px 6px 14px;
+  font-size:.75rem;
+  font-weight:600;
+  outline:none;
+  min-width:145px;
+  text-align:center;
+}
+
+.status-arrow{
+  position:absolute;
+  right:12px;
+  top:50%;
+  transform:translateY(-50%);
+  pointer-events:none;
+  color:inherit;
+}
+
 </style>
