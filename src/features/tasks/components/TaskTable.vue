@@ -17,12 +17,19 @@
           v-for="task in tasks"
           :key="task.id"
         >
-          <td>
-            <div class="task-info">
-              <strong>{{ task.title }}</strong>
-              <small>{{ task.description }}</small>
-            </div>
-          </td>
+           <td class="task-column">
+              <div class="task-info">
+
+                <strong :title="task.title">
+                  {{ task.title }}
+                </strong>
+
+                <small :title="task.description">
+                  {{ task.description }}
+                </small>
+
+              </div>
+            </td>
 
           <td>{{ task.assignee }}</td>
 
@@ -143,6 +150,11 @@ function formatDate(date: string): string {
   border-collapse: collapse;
 }
 
+.task-column{
+  width:320px;
+  max-width:340px;
+}
+
 .task-table thead {
   background: var(--color-structure-base);
 }
@@ -159,14 +171,25 @@ function formatDate(date: string): string {
   border-bottom: 1px solid #edf1f7;
 }
 
-.task-info {
-  display: flex;
-  flex-direction: column;
+.task-info{
+  display:flex;
+  flex-direction:column;
+  width:100%;
+  overflow:hidden;
 }
 
-.task-info small {
-  margin-top: 4px;
-  color: var(--color-text-secondary);
+.task-info strong{
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+.task-info small{
+  margin-top:4px;
+  color:var(--color-text-secondary);
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
 }
 
 .badge {

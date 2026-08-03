@@ -17,7 +17,7 @@ import AnalyticsView from '@/features/analytics/views/AnalyticsView.vue';
 import EmployeesView from '@/features/employees/views/EmployeeView.vue';
 import LandingPageView from '@/features/landingPage/LandingPageView.vue';
 import TaskCalendarView from '@/features/tasks/views/TaskCalendarView.vue';
-
+import InventoryView from '@/features/inventory/views/InventoryView.vue';
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -106,7 +106,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: "inventory",
         name: "inventory",
-        component: TaskView,
+        component: InventoryView,
         meta: {
           requiresAuth: true,
           requiresRole: ['admin', 'manager', 'employee'],
@@ -123,6 +123,26 @@ const routes: RouteRecordRaw[] = [
           // requiresRole: ['superadmin', 'admin'],
           title: "Movimiento de Inventario",
         }
+      },
+      {
+        path: "tasks",
+        name: "tasks",
+        component: TaskView,
+        meta: {
+          requiresAuth: true,
+          requiresRole: ['admin', 'manager', 'employee'],
+          title: "Gestión de tareas",
+        },
+      },
+      {
+        path: 'tasks/calendar',
+        name: 'tasks-calendar',
+        component: TaskCalendarView,
+        meta: {
+          requiresAuth: true,
+          requiresRole: ['admin'],
+          title: 'Calendario de tareas',
+        },
       },
       {
         path: '/superAdmin',
@@ -152,16 +172,6 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresRole: ['admin'],
           title: 'Empleados',
-        },
-      },
-      {
-        path: 'tasks-calendar',
-        name: 'tasks-calendar',
-        component: TaskCalendarView,
-        meta: {
-          requiresAuth: true,
-          requiresRole: ['admin'],
-          title: 'Calendario de tareas',
         },
       },
       //Se agregan nuevas features al menú principal aquí, como movimiento, análisis, clientes, etc.
