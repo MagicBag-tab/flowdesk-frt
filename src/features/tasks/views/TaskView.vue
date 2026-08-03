@@ -20,12 +20,25 @@
 
         <TaskFilters @change="updateFilters" />
 
-        <TaskTable :tasks="tasks"/>
+        <TaskTable
+
+          :tasks="tasks"
+
+          @edit="editTask"
+
+        />
         
         <TaskCreateModal
           v-if="showCreateModal"
           @close="showCreateModal = false"
           @create="createTask"
+        />
+
+        <TaskEditModal
+          v-if="showEditModal && selectedTask"
+          :task="selectedTask"
+          @close="showEditModal = false"
+          @save="updateTask"
         />
     </div>
 </template>
@@ -36,6 +49,7 @@ import { mockTasks } from '../data/mockTasks';
 import TaskTable from '../components/TaskTable.vue';
 import TaskFilters from '../components/TaskFilters.vue';
 import TaskCreateModal from '../components/TaskCreateModal.vue';
+import TaskEditModal from '../components/TaskEditModal.vue';
 
 import { ref, computed } from 'vue';
 import type { Task } from '../types';
@@ -44,6 +58,9 @@ const search = ref('');
 const status = ref('');
 const priority = ref('');
 const showCreateModal = ref(false);
+const showEditModal = ref(false);
+
+const selectedTask = ref<Task | null>(null);
 
 const taskList = ref([...mockTasks]);
 
@@ -81,6 +98,28 @@ function createTask(task: Task) {
   showCreateModal.value = false;
 
 }
+
+function editTask(task: Task){
+
+  selectedTask.value = task;
+
+  showEditModal.value = true;
+
+}
+
+function updateTask(updatedTask: Task) {
+
+  const index = taskList.value.findIndex(
+    task => task.id === updatedTask.id,
+  );
+
+  if (index === -1) return;
+
+  taskList.value.splice(index, 1, updatedTask);
+
+  showEditModal.value = false;
+}
+
 </script>
 
 <style scoped>

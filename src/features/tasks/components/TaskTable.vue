@@ -8,6 +8,7 @@
           <th>Prioridad</th>
           <th>Estado</th>
           <th>Fecha límite</th>
+          <th>Acciones</th>
         </tr>
       </thead>
 
@@ -44,10 +45,20 @@
           </td>
 
           <td>{{ formatDate(task.dueDate) }}</td>
+
+          <td class="actions-cell">
+
+            <button
+              class="btn-edit"
+              @click="$emit('edit', task)"
+            >
+              ✏️
+            </button>
+          </td>
         </tr>
 
         <tr v-if="tasks.length === 0">
-          <td colspan="5" class="empty-state">
+          <td colspan="6" class="empty-state">
             No hay tareas registradas.
           </td>
         </tr>
@@ -62,6 +73,10 @@ import type { Task, TaskPriority, TaskStatus } from '../types';
 
 defineProps<{
   tasks: Task[];
+}>();
+
+const emit = defineEmits<{
+  (e: 'edit', task: Task): void;
 }>();
 
 function priorityClass(priority: TaskPriority) {
@@ -174,5 +189,30 @@ function formatDate(date: string): string {
   text-align: center;
   padding: 40px;
   color: var(--color-text-secondary);
+}
+
+.actions-cell{
+  width:90px;
+  text-align:center;
+}
+
+.btn-edit{
+
+  border:none;
+
+  background:transparent;
+
+  cursor:pointer;
+
+  font-size:1.1rem;
+
+  transition:.2s;
+
+}
+
+.btn-edit:hover{
+
+  transform:scale(1.15);
+
 }
 </style>
