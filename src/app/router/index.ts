@@ -16,7 +16,7 @@ import ResetPasswordView from '@/features/auth/views/ResetPasswordView.vue';
 import AnalyticsView from '@/features/analytics/views/AnalyticsView.vue';
 import EmployeesView from '@/features/employees/views/EmployeeView.vue';
 import LandingPageView from '@/features/landingPage/LandingPageView.vue';
-
+import TaskCalendarView from '@/features/tasks/views/TaskCalendarView.vue';
 
 
 declare module 'vue-router' {
@@ -152,6 +152,16 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresRole: ['admin'],
           title: 'Empleados',
+        },
+      },
+      {
+        path: 'tasks-calendar',
+        name: 'tasks-calendar',
+        component: TaskCalendarView,
+        meta: {
+          requiresAuth: true,
+          requiresRole: ['admin'],
+          title: 'Calendario de tareas',
         },
       },
       //Se agregan nuevas features al menú principal aquí, como movimiento, análisis, clientes, etc.

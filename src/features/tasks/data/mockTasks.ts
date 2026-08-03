@@ -28,4 +28,14 @@ export const mockTasks: Task[] = [
     status: 'Completada',
     dueDate: '2026-07-30',
   },
+  {
+    id: 4,
+    title: 'Validar precios de productos',
+    description: 'Verificar que los productos tengan los precios correctos.',
+    assignee: 'Josué',
+    priority: 'Media',
+    status: 'En progreso',
+    dueDate: '2026-08-22',
+  },
+  
 ];

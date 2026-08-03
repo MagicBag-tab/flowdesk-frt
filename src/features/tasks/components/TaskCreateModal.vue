@@ -59,6 +59,7 @@
                 <option>María</option>
                 <option>Juan</option>
                 <option>Andrea</option>
+                <option>Josué</option>
               </select>
             </div>
 
