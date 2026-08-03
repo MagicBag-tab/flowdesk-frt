@@ -124,7 +124,7 @@ const emit = defineEmits<{
 const title = ref('');
 const description = ref('');
 const assignee = ref('Sin asignar');
-const priority = ref('Sin prioridad');
+const priority = ref<Task['priority']>('Sin prioridad');
 const dueDate = ref('');
 
 function createTask() {
