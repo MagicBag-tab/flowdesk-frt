@@ -5,7 +5,7 @@ import MainLayout from '@/app/layouts/MainLayout.vue';
 import LoginView from '@/features/auth/views/LoginView.vue';
 import ForgotPasswordView from '@/features/auth/views/ForgotPasswordView.vue';
 import RegisterCompanyView from '@/features/auth/views/RegisterCompanyView.vue';
-import InventoryView from '@/features/inventory/views/InventoryView.vue';
+import TaskView from '@/features/tasks/views/TaskView.vue';
 import SuperAdminView from '@/features/roles/views/SuperAdminView.vue';
 import { appStore } from '@/stores/app.store';
 import { resolveHomeByRole } from '@/utils/roles';
@@ -17,7 +17,8 @@ import AnalyticsView from '@/features/analytics/views/AnalyticsView.vue';
 import EmployeesView from '@/features/employees/views/EmployeeView.vue';
 import SuppliersView from '@/features/suppliers/views/SuppliersView.vue';
 import LandingPageView from '@/features/landingPage/LandingPageView.vue';
-
+import TaskCalendarView from '@/features/tasks/views/TaskCalendarView.vue';
+import InventoryView from '@/features/inventory/views/InventoryView.vue';
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -123,6 +124,26 @@ const routes: RouteRecordRaw[] = [
           // requiresRole: ['superadmin', 'admin'],
           title: "Movimiento de Inventario",
         }
+      },
+      {
+        path: "tasks",
+        name: "tasks",
+        component: TaskView,
+        meta: {
+          requiresAuth: true,
+          requiresRole: ['admin', 'manager', 'employee'],
+          title: "Gestión de tareas",
+        },
+      },
+      {
+        path: 'tasks/calendar',
+        name: 'tasks-calendar',
+        component: TaskCalendarView,
+        meta: {
+          requiresAuth: true,
+          requiresRole: ['admin'],
+          title: 'Calendario de tareas',
+        },
       },
       {
         path: '/superAdmin',
