@@ -1,17 +1,29 @@
 <template>
   <div class="analytics-page">
     <div class="page-header">
-      <h1 class="page-title">Análisis de Inventario</h1>
-      <div class="period-selector">
-        <button
-          v-for="opt in periodOptions"
-          :key="opt.value"
-          class="period-btn"
-          :class="{ 'period-btn--active': selectedPeriod === opt.value }"
-          @click="changePeriod(opt.value)"
-        >
-          {{ opt.label }}
+      <div class="header-main">
+        <h1 class="page-title">Análisis de Datos</h1>
+        <div class="tabs-container">
+          <button class="tab-btn" :class="{ active: activeTab === 'inventory' }" @click="activeTab = 'inventory'">Inventario</button>
+          <button class="tab-btn" :class="{ active: activeTab === 'sales' }" @click="activeTab = 'sales'">Ventas</button>
+          <button class="tab-btn" :class="{ active: activeTab === 'products' }" @click="activeTab = 'products'">Productos</button>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn-filter">
+          <Filter :size="16" /> Filtros Avanzados
         </button>
+        <div class="period-selector">
+          <button
+            v-for="opt in periodOptions"
+            :key="opt.value"
+            class="period-btn"
+            :class="{ 'period-btn--active': selectedPeriod === opt.value }"
+            @click="changePeriod(opt.value)"
+          >
+            {{ opt.label }}
+          </button>
+        </div>
       </div>
     </div>
 
@@ -20,7 +32,9 @@
       <button class="alert-close" @click="globalError = ''">✕</button>
     </div>
 
-    <section class="metrics-grid">
+    <!-- TAB INVENTARIO -->
+    <div v-if="activeTab === 'inventory'" class="tab-content">
+      <section class="metrics-grid">
       <div v-for="card in metricCards" :key="card.key" class="metric-card">
         <div class="metric-card__icon" :style="{ background: card.iconBg }">
           <span v-html="card.icon"></span>
@@ -35,7 +49,8 @@
       </div>
     </section>
 
-    <section class="chart-section">
+      <div class="dashboard-grid">
+        <section class="chart-section">
       <div class="section-header">
         <h2 class="section-title">Tendencia de movimientos</h2>
         <div class="window-selector">
@@ -177,12 +192,77 @@
           </tbody>
         </table>
       </div>
-    </section>
+        </section>
+      </div>
+    </div>
+
+    <!-- TAB VENTAS (DUMMY) -->
+    <div v-else-if="activeTab === 'sales'" class="tab-content">
+      <section class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-card__icon" style="background: #e8f5e9;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <div class="metric-card__body">
+            <p class="metric-card__label">Ingresos Totales</p>
+            <p class="metric-card__value" style="color: #2e7d32;">Q12,450</p>
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-card__icon" style="background: #e3f2fd;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1565c0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5.5"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+          </div>
+          <div class="metric-card__body">
+            <p class="metric-card__label">Nuevos Clientes</p>
+            <p class="metric-card__value" style="color: #1565c0;">48</p>
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-card__icon" style="background: #f3e5f5;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7b1fa2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          </div>
+          <div class="metric-card__body">
+            <p class="metric-card__label">Tickets de Venta</p>
+            <p class="metric-card__value" style="color: #7b1fa2;">124</p>
+          </div>
+        </div>
+      </section>
+      <div class="dashboard-grid mt-4">
+        <section class="chart-section" style="display:flex; align-items:center; justify-content:center; min-height:300px;">
+           <p class="chart-empty">Gráfica de Ventas (Datos Simulados)</p>
+        </section>
+        <section class="products-section" style="display:flex; align-items:center; justify-content:center; min-height:300px;">
+           <p class="chart-empty">Top Categorías (Datos Simulados)</p>
+        </section>
+      </div>
+    </div>
+
+    <!-- TAB PRODUCTOS (DUMMY) -->
+    <div v-else-if="activeTab === 'products'" class="tab-content">
+      <section class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-card__icon" style="background: #fdf6e3;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b58900" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          </div>
+          <div class="metric-card__body">
+            <p class="metric-card__label">Total Productos</p>
+            <p class="metric-card__value" style="color: #b58900;">145</p>
+          </div>
+        </div>
+      </section>
+      <div class="dashboard-grid mt-4" style="grid-template-columns: 1fr;">
+        <section class="products-section" style="display:flex; align-items:center; justify-content:center; min-height:300px;">
+           <p class="chart-empty">Catálogo Visual (Datos Simulados)</p>
+        </section>
+      </div>
+    </div>
+
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue';
+import { Filter } from 'lucide-vue-next';
 import {
   fetchMetrics,
   fetchTrend,
@@ -194,6 +274,7 @@ import {
 } from '@/features/analytics/api';
 import { getApiErrorMessage } from '@/services/apiClient';
 
+const activeTab = ref<'inventory' | 'sales' | 'products'>('inventory');
 const selectedPeriod = ref<AnalyticsPeriod>('30d');
 const selectedWindow = ref<'day' | 'week' | 'month'>('day');
 const selectedSort = ref<'outbound' | 'inbound' | 'stock_risk'>('outbound');
@@ -449,9 +530,76 @@ onMounted(loadAll);
 .page-title {
   font-size: 2rem;
   font-weight: 700;
-  margin: 0;
+  margin: 0 0 16px 0;
   color: var(--color-text);
 }
+.header-main {
+  display: flex;
+  flex-direction: column;
+}
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.tabs-container {
+  display: flex;
+  gap: 8px;
+  background: var(--color-bg-surface);
+  border: 1.5px solid var(--color-structure-subtle);
+  border-radius: 10px;
+  padding: 4px;
+}
+.tab-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.tab-btn:hover {
+  color: var(--color-text);
+}
+.tab-btn.active {
+  background: var(--color-structure-base);
+  color: #fff;
+}
+.btn-filter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #fff;
+  border: 1.5px solid var(--color-structure-subtle);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-filter:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+@media (min-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
 .period-selector {
   display: flex;
   gap: 4px;
@@ -555,7 +703,7 @@ onMounted(loadAll);
   background: var(--color-bg-surface);
   border: 1.5px solid var(--color-structure-subtle);
   border-radius: 14px;
-  padding: 20px 24px;
+  padding: 32px;
   box-shadow: var(--shadow-card);
 }
 .window-selector {
@@ -741,7 +889,7 @@ onMounted(loadAll);
   background: var(--color-bg-surface);
   border: 1.5px solid var(--color-structure-subtle);
   border-radius: 14px;
-  padding: 20px 24px;
+  padding: 32px;
   box-shadow: var(--shadow-card);
 }
 .sort-select {
