@@ -77,9 +77,26 @@ const form = reactive({
 const isSubmitting = ref(false);
 const error = ref('');
 
-async function submit() {
+function validateForm(): string | null {
   if (!form.nombre.trim()) {
-    error.value = 'El nombre del proveedor es obligatorio.';
+    return 'El nombre del proveedor es obligatorio.';
+  }
+  
+  if (form.correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.correo)) {
+    return 'El correo electrónico no tiene un formato válido.';
+  }
+  
+  if (form.telefono && !/^[0-9+\-\s()]{6,20}$/.test(form.telefono)) {
+    return 'El teléfono contiene caracteres no válidos o es muy corto/largo.';
+  }
+  
+  return null;
+}
+
+async function submit() {
+  const validationError = validateForm();
+  if (validationError) {
+    error.value = validationError;
     return;
   }
 

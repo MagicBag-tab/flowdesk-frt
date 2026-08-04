@@ -10,89 +10,124 @@
       </button>
     </header>
 
-    <!-- Barra de Herramientas -->
-    <div class="toolbar">
-      <div class="search-box">
-        <Search class="search-icon" :size="18" />
-        <input 
-          v-model="searchQuery" 
-          type="text" 
-          class="search-input" 
-          placeholder="Buscar proveedor por nombre..." 
-          @input="onSearch"
-        />
-      </div>
-      <div class="filter-box">
-        <select v-model="statusFilter" class="filter-select" @change="fetchData">
-          <option value="all">Todos los estados</option>
-          <option value="active">Solo Activos</option>
-          <option value="inactive">Solo Inactivos</option>
-        </select>
-      </div>
+    <div v-if="globalError" class="error-alert">
+      {{ globalError }}
     </div>
 
-    <!-- Contenido de Tabla -->
-    <div class="card">
-      <div v-if="isLoading" class="loading-state">
-        <div class="spinner"></div>
-        <p>Cargando proveedores...</p>
-      </div>
-      
-      <div v-else-if="error" class="error-alert">
-        {{ error }}
-      </div>
+    <div class="split-layout">
+      <!-- PANEL IZQUIERDO: MASTER LIST -->
+      <aside class="master-panel card">
+        <div class="toolbar">
+          <div class="search-box">
+            <Search class="search-icon" :size="16" />
+            <input 
+              v-model="searchQuery" 
+              type="text" 
+              class="search-input" 
+              placeholder="Buscar proveedor..." 
+              @input="onSearch"
+            />
+          </div>
+          <div class="filter-box">
+            <select v-model="statusFilter" class="filter-select" @change="fetchData">
+              <option value="all">Todos</option>
+              <option value="active">Activos</option>
+              <option value="inactive">Inactivos</option>
+            </select>
+          </div>
+        </div>
 
-      <div v-else class="table-responsive">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Contacto</th>
-              <th>Dirección</th>
-              <th>Estado</th>
-              <th class="actions-col">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="sup in suppliers" :key="sup.id">
-              <td class="font-medium">{{ sup.nombre }}</td>
-              <td>
-                <div class="contact-info">
-                  <span v-if="sup.telefono" class="contact-line"><Phone :size="14" class="inline-icon" /> {{ sup.telefono }}</span>
-                  <span v-if="sup.correo" class="contact-line"><Mail :size="14" class="inline-icon" /> {{ sup.correo }}</span>
-                  <span v-if="!sup.telefono && !sup.correo" class="text-muted">Sin contacto</span>
+        <div v-if="isLoading" class="loading-state">
+          <div class="spinner"></div>
+        </div>
+        
+        <ul v-else-if="suppliers.length > 0" class="supplier-list">
+          <li 
+            v-for="sup in suppliers" 
+            :key="sup.id" 
+            class="supplier-item"
+            :class="{ active: selectedSupplier?.id === sup.id }"
+            @click="selectSupplier(sup)"
+          >
+            <div class="supplier-item-content">
+              <div class="supplier-name">{{ sup.nombre }}</div>
+              <div class="supplier-desc">
+                {{ getSupplierCategory(sup) }}
+              </div>
+            </div>
+          </li>
+        </ul>
+
+        <div v-else class="empty-state">
+          No hay proveedores encontrados.
+        </div>
+      </aside>
+
+      <!-- PANEL DERECHO: DETALLES -->
+      <main class="detail-panel card">
+        <div v-if="!selectedSupplier" class="empty-detail">
+          <Building2 :size="48" class="empty-icon" />
+          <h3>Ningún proveedor seleccionado</h3>
+          <p>Selecciona un proveedor de la lista para ver sus detalles.</p>
+        </div>
+
+        <div v-else class="detail-content">
+          <!-- Detail Header -->
+          <div class="detail-header">
+            <div>
+              <h2 class="detail-name">{{ selectedSupplier.nombre }}</h2>
+              <p class="detail-desc">{{ getSupplierCategory(selectedSupplier) }}</p>
+            </div>
+            <div class="detail-actions">
+              <button class="btn-icon-action" @click="openEditModal(selectedSupplier)" title="Editar información">
+                <Pencil :size="18" /> Editar
+              </button>
+            </div>
+          </div>
+
+            <section class="detail-section">
+              <h3 class="section-title">Información de Contacto</h3>
+              <div class="contact-card">
+                <div class="contact-row">
+                  <Phone :size="16" class="contact-icon" />
+                  <span>{{ selectedSupplier.telefono || 'No registrado' }}</span>
                 </div>
-              </td>
-              <td>
-                <span class="truncate-text" :title="sup.direccion || ''">
-                  {{ sup.direccion || '—' }}
-                </span>
-              </td>
-              <td>
-                <button 
-                  class="status-badge" 
-                  :class="sup.is_active ? 'status-active' : 'status-inactive'"
-                  @click="toggleStatus(sup)"
-                  :disabled="isToggling === sup.id"
-                  title="Clic para cambiar estado"
-                >
-                  {{ isToggling === sup.id ? '...' : (sup.is_active ? 'Activo' : 'Inactivo') }}
-                </button>
-              </td>
-              <td class="actions-col">
-                <button class="btn-icon-action" @click="openEditModal(sup)" title="Editar">
-                  <Pencil :size="16" />
-                </button>
-              </td>
-            </tr>
-            <tr v-if="suppliers.length === 0">
-              <td colspan="5" class="empty-state">
-                <p>No se encontraron proveedores que coincidan con tu búsqueda.</p>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+                <div class="contact-row">
+                  <Mail :size="16" class="contact-icon" />
+                  <span>{{ selectedSupplier.correo || 'No registrado' }}</span>
+                </div>
+                <div class="contact-row">
+                  <MapPin :size="16" class="contact-icon" />
+                  <span>{{ selectedSupplier.direccion || 'No registrada' }}</span>
+                </div>
+              </div>
+            </section>
+
+          <!-- Productos (Dummy) -->
+          <section class="detail-section mt-4">
+            <h3 class="section-title">Productos que Provee (Catálogo)</h3>
+            <div class="dummy-table-container">
+              <table class="dummy-table">
+                <thead>
+                  <tr>
+                    <th>SKU</th>
+                    <th>Producto</th>
+                    <th>Precio de Compra</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="p in mockProducts" :key="p.id">
+                    <td class="td-sku">{{ p.sku }}</td>
+                    <td class="font-medium">{{ p.name }}</td>
+                    <td>{{ p.price }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+        </div>
+      </main>
     </div>
 
     <!-- Modal (Paso 3) -->
@@ -107,34 +142,53 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { Search, Phone, Mail, Pencil } from 'lucide-vue-next';
+import { Search, Phone, Mail, Pencil, MapPin, Building2 } from 'lucide-vue-next';
 import { fetchSuppliers, toggleSupplierStatus, type Supplier } from '@/features/suppliers/api';
 import { getApiErrorMessage } from '@/services/apiClient';
 import SupplierModal from '@/features/suppliers/components/SupplierModal.vue';
 
-// Estado
+// Estado General
 const suppliers = ref<Supplier[]>([]);
 const isLoading = ref(true);
-const error = ref('');
+const globalError = ref('');
 const searchQuery = ref('');
 const statusFilter = ref('active'); // Por defecto ver activos (o 'all')
+
+// Master-Detail State
+const selectedSupplier = ref<Supplier | null>(null);
 const isToggling = ref<string | null>(null);
 
 // Variables Modal
 const showModal = ref(false);
 const supplierToEdit = ref<Supplier | null>(null);
 
-// Variables para el buscador con debounce
+// Datos Dummy para secciones que el backend aún no soporta
+const mockProducts = [
+  { id: 1, name: 'Caja de Cartón 50x50', sku: 'BOX-50', price: '$1.20' },
+  { id: 2, name: 'Cinta Adhesiva Industrial', sku: 'TAPE-IND', price: '$0.80' },
+  { id: 3, name: 'Plástico de Burbujas 50m', sku: 'BUBBLE-50', price: '$12.00' },
+];
+
+
+// Buscador
 let searchTimeout: ReturnType<typeof setTimeout>;
 
 async function fetchData() {
   isLoading.value = true;
-  error.value = '';
+  globalError.value = '';
   try {
     const isActiveParam = statusFilter.value === 'all' ? undefined : (statusFilter.value === 'active');
     suppliers.value = await fetchSuppliers(searchQuery.value, isActiveParam);
+    
+    // Auto-seleccionar el primero si no hay selección o la selección ya no existe
+    if (!selectedSupplier.value && suppliers.value.length > 0) {
+      selectedSupplier.value = suppliers.value[0];
+    } else if (selectedSupplier.value) {
+      const stillExists = suppliers.value.find(s => s.id === selectedSupplier.value?.id);
+      selectedSupplier.value = stillExists || (suppliers.value.length > 0 ? suppliers.value[0] : null);
+    }
   } catch (err) {
-    error.value = getApiErrorMessage(err);
+    globalError.value = getApiErrorMessage(err);
   } finally {
     isLoading.value = false;
   }
@@ -147,12 +201,30 @@ function onSearch() {
   }, 400); // 400ms debounce
 }
 
+function selectSupplier(sup: Supplier) {
+  selectedSupplier.value = sup;
+}
+
+function getSupplierCategory(sup: Supplier) {
+  const hash = sup.nombre.length;
+  if (hash % 3 === 0) return 'Proveeduría de empaques y logística';
+  if (hash % 3 === 1) return 'Materiales de oficina y papelería';
+  return 'Componentes electrónicos y refacciones';
+}
+
 async function toggleStatus(sup: Supplier) {
   if (isToggling.value) return;
   isToggling.value = sup.id;
   try {
     const updated = await toggleSupplierStatus(sup.id, !sup.is_active);
+    
+    // Update local state
     sup.is_active = updated.is_active;
+    
+    // If it's the selected one, update it directly too just in case (reference should be the same though)
+    if (selectedSupplier.value && selectedSupplier.value.id === sup.id) {
+      selectedSupplier.value.is_active = updated.is_active;
+    }
   } catch (err) {
     alert('Error al cambiar el estado: ' + getApiErrorMessage(err));
   } finally {
@@ -172,7 +244,7 @@ function openEditModal(sup: Supplier) {
 
 function onModalSaved() {
   showModal.value = false;
-  fetchData(); // Refrescar tabla tras guardar o editar
+  fetchData(); 
 }
 
 onMounted(() => {
@@ -183,7 +255,7 @@ onMounted(() => {
 <style scoped>
 .page-container {
   padding: 32px;
-  max-width: 1200px;
+  max-width: 1300px;
   margin: 0 auto;
 }
 
@@ -228,57 +300,6 @@ onMounted(() => {
   box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
 }
 
-.toolbar {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.search-box {
-  flex: 1;
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.search-icon {
-  position: absolute;
-  left: 14px;
-  color: #94a3b8;
-  font-size: 1rem;
-}
-
-.search-input {
-  width: 100%;
-  padding: 12px 14px 12px 40px;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  font-size: 0.95rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: var(--color-structure-base, #3b82f6);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.filter-select {
-  padding: 12px 16px;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  font-size: 0.95rem;
-  background: #fff;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-}
-
-.filter-select:focus {
-  outline: none;
-  border-color: var(--color-structure-base, #3b82f6);
-}
-
 .card {
   background: #ffffff;
   border-radius: 16px;
@@ -287,76 +308,280 @@ onMounted(() => {
   overflow: hidden;
 }
 
-.table-responsive {
-  overflow-x: auto;
+/* Master-Detail Layout */
+.split-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 24px;
+  align-items: stretch;
 }
 
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
+/* Left Panel */
+.master-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 800px;
 }
 
-.data-table th {
-  background: #f8fafc;
+.toolbar {
   padding: 16px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.data-table td {
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  color: #94a3b8;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 10px 10px 36px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--color-structure-base);
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+}
+
+.filter-select {
+  width: 100%;
+  padding: 8px 32px 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  background: #f8fafc;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 14px;
+}
+
+.supplier-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.supplier-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 16px;
   border-bottom: 1px solid #f1f5f9;
-  color: #334155;
-  font-size: 0.95rem;
-  vertical-align: middle;
+  cursor: pointer;
+  transition: background 0.2s;
 }
 
-.data-table tbody tr:hover {
-  background-color: #f8fafc;
+.supplier-item:hover {
+  background: #f8fafc;
 }
 
-.font-medium {
-  font-weight: 600;
-  color: #0f172a;
+.supplier-item.active {
+  background: #eff6ff;
+  border-left: 4px solid var(--color-structure-base, #3b82f6);
+  padding-left: 12px; /* Compensate border */
 }
 
-.text-muted {
-  color: #94a3b8;
-  font-style: italic;
-  font-size: 0.85rem;
-}
-
-.contact-info {
+.supplier-item-content {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 0.85rem;
 }
 
-.contact-line {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: #475569;
+.supplier-name {
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 0.95rem;
 }
 
-.inline-icon {
-  color: #94a3b8;
-}
-
-.truncate-text {
-  display: inline-block;
-  max-width: 250px;
+.supplier-desc {
+  font-size: 0.8rem;
+  color: #64748b;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 250px;
 }
 
+.dot-active {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+}
+.dot-inactive {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #94a3b8;
+}
+
+
+/* Right Panel */
+.detail-panel {
+  padding: 32px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.empty-detail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #94a3b8;
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.empty-icon {
+  color: #cbd5e1;
+  margin-bottom: 16px;
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.detail-name {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.detail-desc {
+  font-size: 0.95rem;
+  color: #64748b;
+  margin: 4px 0 0 0;
+}
+
+.detail-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-icon-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #334155;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-icon-action:hover {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+}
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 16px;
+}
+
+.contact-card {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: 1px solid #f1f5f9;
+}
+
+.contact-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #334155;
+  font-size: 0.95rem;
+}
+
+.contact-icon {
+  color: #94a3b8;
+}
+
+/* Dummy Tables */
+.dummy-table-container {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.dummy-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.85rem;
+}
+
+.dummy-table th {
+  background: #f8fafc;
+  padding: 12px 16px;
+  color: #64748b;
+  font-weight: 600;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.dummy-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+}
+
+.dummy-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.dummy-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.td-sku { font-family: monospace; color: #64748b; }
+.font-medium { font-weight: 600; color: #0f172a; }
+.text-success { color: #16a34a; font-weight: 600; }
+.text-danger { color: #dc2626; font-weight: 600; }
+.flex-align { display: flex; align-items: center; gap: 6px; }
+.inline-icon { color: #94a3b8; }
+.mt-4 { margin-top: 32px; }
+
+/* Status Badge */
 .status-badge {
   padding: 6px 12px;
   border-radius: 20px;
@@ -367,47 +592,10 @@ onMounted(() => {
   transition: opacity 0.2s;
 }
 
-.status-badge:hover:not(:disabled) {
-  opacity: 0.8;
-}
-
-.status-active {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.status-inactive {
-  background: #f1f5f9;
-  color: #475569;
-}
-
-.status-badge:disabled {
-  opacity: 0.5;
-  cursor: wait;
-}
-
-.actions-col {
-  text-align: right;
-  width: 100px;
-}
-
-.btn-icon-action {
-  background: none;
-  border: none;
-  color: #64748b;
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 6px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-}
-
-.btn-icon-action:hover {
-  background: #e2e8f0;
-  color: #0f172a;
-}
+.status-badge:hover:not(:disabled) { opacity: 0.8; }
+.status-active { background: #dcfce7; color: #166534; }
+.status-inactive { background: #f1f5f9; color: #475569; }
+.status-badge:disabled { opacity: 0.5; cursor: wait; }
 
 .loading-state, .empty-state {
   padding: 48px 20px;
@@ -425,12 +613,10 @@ onMounted(() => {
   margin: 0 auto 16px;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+@keyframes spin { to { transform: rotate(360deg); } }
 
 .error-alert {
-  margin: 20px;
+  margin-bottom: 20px;
   padding: 16px;
   background: #fef2f2;
   color: #b91c1c;
