@@ -85,8 +85,6 @@
             </div>
           </div>
 
-          <div class="detail-grid">
-            <!-- Contact Info -->
             <section class="detail-section">
               <h3 class="section-title">Información de Contacto</h3>
               <div class="contact-card">
@@ -104,36 +102,6 @@
                 </div>
               </div>
             </section>
-
-            <!-- Cotizaciones (Dummy) -->
-            <section class="detail-section">
-              <h3 class="section-title">Últimas Cotizaciones</h3>
-              <div class="dummy-table-container">
-                <table class="dummy-table">
-                  <thead>
-                    <tr>
-                      <th>Documento</th>
-                      <th>Fecha</th>
-                      <th>Estado</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="q in mockQuotes" :key="q.id">
-                      <td class="font-medium flex-align">
-                        <FileText :size="14" class="inline-icon" /> {{ q.doc }}
-                      </td>
-                      <td>{{ q.date }}</td>
-                      <td>
-                        <span :class="q.status === 'Aprobada' ? 'text-success' : 'text-danger'">
-                          {{ q.status }}
-                        </span>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </section>
-          </div>
 
           <!-- Productos (Dummy) -->
           <section class="detail-section mt-4">
@@ -174,7 +142,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { Search, Phone, Mail, Pencil, MapPin, Building2, FileText } from 'lucide-vue-next';
+import { Search, Phone, Mail, Pencil, MapPin, Building2 } from 'lucide-vue-next';
 import { fetchSuppliers, toggleSupplierStatus, type Supplier } from '@/features/suppliers/api';
 import { getApiErrorMessage } from '@/services/apiClient';
 import SupplierModal from '@/features/suppliers/components/SupplierModal.vue';
@@ -201,10 +169,6 @@ const mockProducts = [
   { id: 3, name: 'Plástico de Burbujas 50m', sku: 'BUBBLE-50', price: '$12.00' },
 ];
 
-const mockQuotes = [
-  { id: 1, date: '2026-07-28', doc: 'COT-2026-089.pdf', status: 'Aprobada' },
-  { id: 2, date: '2026-07-15', doc: 'COT-2026-074.pdf', status: 'Rechazada' },
-];
 
 // Buscador
 let searchTimeout: ReturnType<typeof setTimeout>;
@@ -542,12 +506,6 @@ onMounted(() => {
 .btn-icon-action:hover {
   background: #e2e8f0;
   border-color: #cbd5e1;
-}
-
-.detail-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 32px;
 }
 
 .section-title {
