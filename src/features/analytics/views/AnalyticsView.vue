@@ -50,90 +50,40 @@
     </section>
 
       <div class="dashboard-grid">
-        <section class="chart-section">
-      <div class="section-header">
-        <h2 class="section-title">Tendencia de movimientos</h2>
-        <div class="window-selector">
-          <button
-            v-for="opt in windowOptions"
-            :key="opt.value"
-            class="window-btn"
-            :class="{ 'window-btn--active': selectedWindow === opt.value }"
-            @click="changeWindow(opt.value)"
-          >
-            {{ opt.label }}
-          </button>
-        </div>
-      </div>
-
-      <div class="chart-wrapper">
-        <div v-if="trendLoading" class="chart-skeleton">
-          <div class="skeleton skeleton--chart"></div>
-        </div>
-        <div v-else-if="trendError" class="chart-empty chart-empty--error">
-          {{ trendError }}
-        </div>
-        <div v-else-if="trendData.length === 0" class="chart-empty">
-          No hay movimientos en este período.
-        </div>
-        <div v-else class="trend-chart" style="height: 100%; min-height: 250px;">
-          <Bar :data="trendChartData" :options="trendChartOptions" />
-        </div>
-      </div>
-    </section>
-
-    <section class="products-section">
-      <div class="section-header">
-        <h2 class="section-title">Top productos por movimiento</h2>
-        <div class="sort-selector">
-          <select v-model="selectedSort" class="sort-select" @change="loadProductAnalytics">
-            <option value="outbound">Mayor salida</option>
-            <option value="inbound">Mayor entrada</option>
-            <option value="stock_risk">Mayor riesgo</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="table-container">
-        <div v-if="productsLoading" class="table-loading">Cargando productos…</div>
-        <div v-else-if="productsError" class="table-empty table-empty--error">{{ productsError }}</div>
-        <table v-else class="products-table">
-          <thead>
-            <tr>
-              <th>Producto</th>
-              <th>SKU</th>
-              <th>Entradas</th>
-              <th>Salidas</th>
-              <th>Stock actual</th>
-              <th>Riesgo</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="p in topProducts" :key="p.product_id">
-              <td class="td-name">{{ p.nombre }}</td>
-              <td class="td-sku">{{ p.sku }}</td>
-              <td class="td-in">+{{ fmt(p.inbound_quantity) }}</td>
-              <td class="td-out">-{{ fmt(p.outbound_quantity) }}</td>
-              <td>{{ fmt(p.ending_stock) }}</td>
-              <td>
-                <span class="risk-badge" :class="riskClass(p.stock_risk_score)">
-                  {{ riskLabel(p.stock_risk_score) }}
-                </span>
-              </td>
-            </tr>
-            <tr v-if="topProducts.length === 0">
-              <td colspan="6" class="table-empty">Sin datos para este período.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-  </div>
-
-      <div class="dashboard-grid">
         <section class="chart-section" style="padding: 24px;">
-          <h2 class="section-title">Feed de Últimos Movimientos</h2>
-          <div class="feed-list" style="margin-top: 16px; display: flex; flex-direction: column; gap: 12px;">
+          <div class="section-header">
+            <h2 class="section-title">Tendencia de movimientos</h2>
+            <div class="window-selector">
+              <button
+                v-for="opt in windowOptions"
+                :key="opt.value"
+                class="window-btn"
+                :class="{ 'window-btn--active': selectedWindow === opt.value }"
+                @click="changeWindow(opt.value)"
+              >
+                {{ opt.label }}
+              </button>
+            </div>
+          </div>
+          <div class="chart-wrapper">
+            <div v-if="trendLoading" class="chart-skeleton">
+              <div class="skeleton skeleton--chart"></div>
+            </div>
+            <div v-else-if="trendError" class="chart-empty chart-empty--error">
+              {{ trendError }}
+            </div>
+            <div v-else-if="trendData.length === 0" class="chart-empty">
+              No hay movimientos en este período.
+            </div>
+            <div v-else class="trend-chart" style="height: 100%; min-height: 250px;">
+              <Bar :data="trendChartData" :options="trendChartOptions" />
+            </div>
+          </div>
+        </section>
+
+        <section class="chart-section" style="padding: 24px;">
+          <h2 class="section-title">Feed de Movimientos</h2>
+          <div class="feed-list" style="margin-top: 16px; display: flex; flex-direction: column; gap: 12px; max-height: 320px; overflow-y: auto;">
             <div v-for="item in mockFeed" :key="item.id" style="display: flex; gap: 12px; align-items: center; padding: 12px; background: #f8fafc; border-radius: 8px;">
               <div :style="{ color: item.type === 'in' ? '#2e7d32' : '#e65100' }">
                 <ArrowDownRight v-if="item.type === 'in'" />
@@ -144,6 +94,46 @@
               </div>
               <span style="font-size: 0.75rem; color: var(--color-text-muted);">{{ item.time }}</span>
             </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr;">
+        <section class="products-section" style="padding: 24px;">
+          <div class="section-header">
+            <h2 class="section-title">Top Productos</h2>
+            <div class="sort-selector">
+              <select v-model="selectedSort" class="sort-select" @change="loadProductAnalytics">
+                <option value="outbound">Mayor salida</option>
+                <option value="inbound">Mayor entrada</option>
+                <option value="stock_risk">Mayor riesgo</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-container">
+            <div v-if="productsLoading" class="table-loading">Cargando productos…</div>
+            <div v-else-if="productsError" class="table-empty table-empty--error">{{ productsError }}</div>
+            <table v-else class="products-table">
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Entradas</th>
+                  <th>Salidas</th>
+                  <th>Stock</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="p in topProducts" :key="p.product_id">
+                  <td class="td-name">{{ p.nombre }}</td>
+                  <td class="td-in">+{{ fmt(p.inbound_quantity) }}</td>
+                  <td class="td-out">-{{ fmt(p.outbound_quantity) }}</td>
+                  <td>{{ fmt(p.ending_stock) }}</td>
+                </tr>
+                <tr v-if="topProducts.length === 0">
+                  <td colspan="4" class="table-empty">Sin datos.</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </section>
 
