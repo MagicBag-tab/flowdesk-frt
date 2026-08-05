@@ -1,17 +1,29 @@
 <template>
   <div class="analytics-page">
     <div class="page-header">
-      <h1 class="page-title">Análisis de Inventario</h1>
-      <div class="period-selector">
-        <button
-          v-for="opt in periodOptions"
-          :key="opt.value"
-          class="period-btn"
-          :class="{ 'period-btn--active': selectedPeriod === opt.value }"
-          @click="changePeriod(opt.value)"
-        >
-          {{ opt.label }}
+      <div class="header-main">
+        <h1 class="page-title">Análisis de Datos</h1>
+        <div class="tabs-container">
+          <button class="tab-btn" :class="{ active: activeTab === 'inventory' }" @click="activeTab = 'inventory'">Inventario</button>
+          <button class="tab-btn" :class="{ active: activeTab === 'sales' }" @click="activeTab = 'sales'">Ventas</button>
+          <button class="tab-btn" :class="{ active: activeTab === 'products' }" @click="activeTab = 'products'">Productos</button>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn-filter" @click="showFilters = true">
+          <Filter :size="16" /> Filtros Avanzados
         </button>
+        <div class="period-selector">
+          <button
+            v-for="opt in periodOptions"
+            :key="opt.value"
+            class="period-btn"
+            :class="{ 'period-btn--active': selectedPeriod === opt.value }"
+            @click="changePeriod(opt.value)"
+          >
+            {{ opt.label }}
+          </button>
+        </div>
       </div>
     </div>
 
@@ -20,7 +32,9 @@
       <button class="alert-close" @click="globalError = ''">✕</button>
     </div>
 
-    <section class="metrics-grid">
+    <!-- TAB INVENTARIO -->
+    <div v-if="activeTab === 'inventory'" class="tab-content">
+      <section class="metrics-grid">
       <div v-for="card in metricCards" :key="card.key" class="metric-card">
         <div class="metric-card__icon" :style="{ background: card.iconBg }">
           <span v-html="card.icon"></span>
@@ -35,154 +49,258 @@
       </div>
     </section>
 
-    <section class="chart-section">
-      <div class="section-header">
-        <h2 class="section-title">Tendencia de movimientos</h2>
-        <div class="window-selector">
-          <button
-            v-for="opt in windowOptions"
-            :key="opt.value"
-            class="window-btn"
-            :class="{ 'window-btn--active': selectedWindow === opt.value }"
-            @click="changeWindow(opt.value)"
-          >
-            {{ opt.label }}
-          </button>
-        </div>
-      </div>
-
-      <div class="chart-wrapper">
-        <div v-if="trendLoading" class="chart-skeleton">
-          <div class="skeleton skeleton--chart"></div>
-        </div>
-        <div v-else-if="trendError" class="chart-empty chart-empty--error">
-          {{ trendError }}
-        </div>
-        <div v-else-if="trendData.length === 0" class="chart-empty">
-          No hay movimientos en este período.
-        </div>
-        <div v-else class="trend-chart" role="img" aria-label="Tendencia de entradas y salidas de inventario">
-          <div class="chart-legend">
-            <span class="chart-legend__item">
-              <span class="chart-legend__swatch chart-legend__swatch--in"></span>
-              Entradas
-            </span>
-            <span class="chart-legend__item">
-              <span class="chart-legend__swatch chart-legend__swatch--out"></span>
-              Salidas
-            </span>
+      <div class="dashboard-grid">
+        <section class="chart-section" style="padding: 24px;">
+          <div class="section-header">
+            <h2 class="section-title">Tendencia de movimientos</h2>
           </div>
-
-          <div class="chart-plot">
-            <div class="chart-y-axis" aria-hidden="true">
-              <span v-for="tick in yTicks" :key="tick.label">{{ tick.label }}</span>
+          <div class="chart-wrapper">
+            <div v-if="trendLoading" class="chart-skeleton">
+              <div class="skeleton skeleton--chart"></div>
             </div>
+            <div v-else-if="trendError" class="chart-empty chart-empty--error">
+              {{ trendError }}
+            </div>
+            <div v-else-if="trendData.length === 0" class="chart-empty">
+              No hay movimientos en este período.
+            </div>
+            <div v-else class="trend-chart" style="height: 100%; min-height: 250px;">
+              <Bar :data="trendChartData" :options="trendChartOptions" />
+            </div>
+          </div>
+        </section>
 
-            <div class="chart-drawing-area">
-              <svg
-                class="chart-svg"
-                :viewBox="`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`"
-                preserveAspectRatio="none"
-                aria-hidden="true"
-              >
-                <line
-                  v-for="tick in yTicks"
-                  :key="tick.y"
-                  class="chart-grid-line"
-                  x1="0"
-                  :x2="CHART_WIDTH"
-                  :y1="tick.y"
-                  :y2="tick.y"
-                />
-                <path class="chart-area chart-area--in" :d="inboundAreaPath" />
-                <path class="chart-area chart-area--out" :d="outboundAreaPath" />
-                <polyline class="chart-line chart-line--in" :points="inboundPolyline" />
-                <polyline class="chart-line chart-line--out" :points="outboundPolyline" />
-              </svg>
-
-              <!-- Puntos HTML para que no se deformen con el responsive del SVG -->
-              <div class="chart-points-overlay" aria-hidden="true">
-                <span
-                  v-for="point in inboundChartPoints"
-                  :key="`in-${point.label}`"
-                  class="html-point html-point--in"
-                  :style="{ left: `${(point.x / CHART_WIDTH) * 100}%`, top: `${(point.y / CHART_HEIGHT) * 100}%` }"
-                ></span>
-                <span
-                  v-for="point in outboundChartPoints"
-                  :key="`out-${point.label}`"
-                  class="html-point html-point--out"
-                  :style="{ left: `${(point.x / CHART_WIDTH) * 100}%`, top: `${(point.y / CHART_HEIGHT) * 100}%` }"
-                ></span>
+        <section class="chart-section" style="padding: 24px;">
+          <h2 class="section-title">Feed de Movimientos</h2>
+          <div class="feed-list" style="margin-top: 16px; display: flex; flex-direction: column; gap: 12px; max-height: 320px; overflow-y: auto;">
+            <div v-for="item in mockFeed" :key="item.id" style="display: flex; gap: 12px; align-items: center; padding: 12px; background: #f8fafc; border-radius: 8px;">
+              <div :style="{ color: item.type === 'in' ? '#2e7d32' : '#e65100' }">
+                <ArrowDownRight v-if="item.type === 'in'" />
+                <ArrowUpRight v-else />
               </div>
+              <div style="flex: 1; font-size: 0.88rem;">
+                <strong>{{ item.user }}</strong> {{ item.action }} <strong>{{ item.product }}</strong>
+              </div>
+              <span style="font-size: 0.75rem; color: var(--color-text-muted);">{{ item.time }}</span>
             </div>
           </div>
+        </section>
+      </div>
 
-          <div class="chart-x-axis" aria-hidden="true">
-            <span
-              v-for="label in xAxisLabels"
-              :key="`${label.text}-${label.left}`"
-              class="chart-x-label"
-              :style="{ left: `${label.left}%` }"
-            >
-              {{ label.text }}
-            </span>
+      <div class="dashboard-grid dashboard-grid--1-1">
+        <section class="products-section" style="padding: 24px;">
+          <div class="section-header">
+            <h2 class="section-title">Top Productos</h2>
+            <div class="sort-selector">
+              <select v-model="selectedSort" class="sort-select" @change="loadProductAnalytics">
+                <option value="outbound">Mayor salida</option>
+                <option value="inbound">Mayor entrada</option>
+                <option value="stock_risk">Mayor riesgo</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-container">
+            <div v-if="productsLoading" class="table-loading">Cargando productos…</div>
+            <div v-else-if="productsError" class="table-empty table-empty--error">{{ productsError }}</div>
+            <table v-else class="products-table">
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Entradas</th>
+                  <th>Salidas</th>
+                  <th>Stock</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="p in topProducts" :key="p.product_id">
+                  <td class="td-name">{{ p.nombre }}</td>
+                  <td class="td-in">+{{ fmt(p.inbound_quantity) }}</td>
+                  <td class="td-out">-{{ fmt(p.outbound_quantity) }}</td>
+                  <td>{{ fmt(p.ending_stock) }}</td>
+                </tr>
+                <tr v-if="topProducts.length === 0">
+                  <td colspan="4" class="table-empty">Sin datos.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="products-section" style="padding: 24px;">
+          <h2 class="section-title">Alertas de Reabastecimiento</h2>
+          <div class="table-container" style="margin-top: 16px;">
+            <table class="products-table">
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Stock</th>
+                  <th>Mínimo</th>
+                  <th>Proveedor</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="alert in mockAlerts" :key="alert.id">
+                  <td class="td-name">{{ alert.name }}</td>
+                  <td style="color: #c62828; font-weight: bold;">{{ alert.stock }}</td>
+                  <td>{{ alert.min }}</td>
+                  <td style="color: var(--color-text-muted);">{{ alert.supplier }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- TAB VENTAS (DUMMY) -->
+    <div v-else-if="activeTab === 'sales'" class="tab-content">
+      <section class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-card__icon" style="background: #e8f5e9;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <div class="metric-card__body">
+            <p class="metric-card__label">Ingresos Totales</p>
+            <p class="metric-card__value" style="color: #2e7d32;">Q12,450</p>
           </div>
         </div>
+        <div class="metric-card">
+          <div class="metric-card__icon" style="background: #e3f2fd;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1565c0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5.5"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+          </div>
+          <div class="metric-card__body">
+            <p class="metric-card__label">Nuevos Clientes</p>
+            <p class="metric-card__value" style="color: #1565c0;">48</p>
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-card__icon" style="background: #f3e5f5;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7b1fa2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          </div>
+          <div class="metric-card__body">
+            <p class="metric-card__label">Tickets de Venta</p>
+            <p class="metric-card__value" style="color: #7b1fa2;">124</p>
+          </div>
+        </div>
+      </section>
+      <div class="dashboard-grid">
+        <section class="chart-section" style="padding: 24px;">
+          <h2 class="section-title">Valoración Financiera del Inventario</h2>
+          <div style="height: 300px; width: 100%; margin-top: 16px;">
+            <Line :data="valuationChartData" :options="valuationChartOptions" />
+          </div>
+        </section>
+        <section class="products-section" style="padding: 24px; display:flex; align-items:center; justify-content:center; min-height:300px;">
+           <p class="chart-empty">Top Categorías (Datos Simulados)</p>
+        </section>
       </div>
-    </section>
+    </div>
 
-    <section class="products-section">
-      <div class="section-header">
-        <h2 class="section-title">Top productos por movimiento</h2>
-        <div class="sort-selector">
-          <select v-model="selectedSort" class="sort-select" @change="loadProductAnalytics">
-            <option value="outbound">Mayor salida</option>
-            <option value="inbound">Mayor entrada</option>
-            <option value="stock_risk">Mayor riesgo</option>
+    <!-- TAB PRODUCTOS (DUMMY) -->
+    <div v-else-if="activeTab === 'products'" class="tab-content">
+      <section class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-card__icon" style="background: #fdf6e3;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b58900" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          </div>
+          <div class="metric-card__body">
+            <p class="metric-card__label">Total Productos</p>
+            <p class="metric-card__value" style="color: #b58900;">145</p>
+          </div>
+        </div>
+      </section>
+      <div class="dashboard-grid dashboard-grid--1-2">
+        <section class="chart-section" style="padding: 24px;">
+          <h2 class="section-title">Distribución por Categorías</h2>
+          <div style="height: 280px; width: 100%; margin-top: 16px;">
+            <Doughnut :data="categoryChartData" :options="categoryChartOptions" />
+          </div>
+        </section>
+        <section class="products-section" style="padding: 24px;">
+          <h2 class="section-title">Reporte de Stock Muerto</h2>
+          <div class="table-container" style="margin-top: 16px;">
+            <table class="products-table">
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Días sin movimiento</th>
+                  <th>Stock Estancado</th>
+                  <th>Valor Congelado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="item in mockDeadStock" :key="item.id">
+                  <td class="td-name">{{ item.name }}</td>
+                  <td style="color: #e65100; font-weight: bold;">{{ item.days }} días</td>
+                  <td>{{ item.stock }}</td>
+                  <td style="color: #c62828; font-weight: bold;">{{ item.value }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ADVANCED FILTERS DRAWER -->
+    <div class="drawer-overlay" :class="{ 'drawer-overlay--open': showFilters }" @click="showFilters = false"></div>
+    <div class="drawer-panel" :class="{ 'drawer-panel--open': showFilters }">
+      <div class="drawer-header">
+        <h3>Filtros Avanzados</h3>
+        <button class="drawer-close" @click="showFilters = false"><X :size="20" /></button>
+      </div>
+      <div class="drawer-body">
+        <div class="filter-group">
+          <label>Rango de Fechas</label>
+          <div class="date-inputs">
+            <input type="date" class="filter-input" />
+            <span>a</span>
+            <input type="date" class="filter-input" />
+          </div>
+        </div>
+        <div class="filter-group">
+          <label>Categoría</label>
+          <select class="filter-input">
+            <option value="">Todas las categorías</option>
+            <option value="lacteos">Lácteos</option>
+            <option value="abarrotes">Abarrotes</option>
+            <option value="limpieza">Limpieza</option>
           </select>
         </div>
+        <div class="filter-group">
+          <label>Rango de Stock</label>
+          <div class="range-inputs">
+            <input type="number" placeholder="Mín" class="filter-input" />
+            <span>-</span>
+            <input type="number" placeholder="Máx" class="filter-input" />
+          </div>
+        </div>
       </div>
+      <div class="drawer-footer">
+        <button class="btn-clear" @click="showFilters = false">Limpiar</button>
+        <button class="btn-apply" @click="showFilters = false">Aplicar Filtros</button>
+      </div>
+    </div>
 
-      <div class="table-container">
-        <div v-if="productsLoading" class="table-loading">Cargando productos…</div>
-        <div v-else-if="productsError" class="table-empty table-empty--error">{{ productsError }}</div>
-        <table v-else class="products-table">
-          <thead>
-            <tr>
-              <th>Producto</th>
-              <th>SKU</th>
-              <th>Entradas</th>
-              <th>Salidas</th>
-              <th>Stock actual</th>
-              <th>Riesgo</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="p in topProducts" :key="p.product_id">
-              <td class="td-name">{{ p.nombre }}</td>
-              <td class="td-sku">{{ p.sku }}</td>
-              <td class="td-in">+{{ fmt(p.inbound_quantity) }}</td>
-              <td class="td-out">-{{ fmt(p.outbound_quantity) }}</td>
-              <td>{{ fmt(p.ending_stock) }}</td>
-              <td>
-                <span class="risk-badge" :class="riskClass(p.stock_risk_score)">
-                  {{ riskLabel(p.stock_risk_score) }}
-                </span>
-              </td>
-            </tr>
-            <tr v-if="topProducts.length === 0">
-              <td colspan="6" class="table-empty">Sin datos para este período.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue';
+import { Filter, ArrowUpRight, ArrowDownRight, AlertTriangle, X } from 'lucide-vue-next';
+import { Line, Doughnut, Bar } from 'vue-chartjs';
+import {
+  Chart as ChartJS,
+  Title,
+  Tooltip,
+  Legend,
+  LineElement,
+  LinearScale,
+  PointElement,
+  CategoryScale,
+  ArcElement,
+  BarElement
+} from 'chart.js';
 import {
   fetchMetrics,
   fetchTrend,
@@ -194,6 +312,68 @@ import {
 } from '@/features/analytics/api';
 import { getApiErrorMessage } from '@/services/apiClient';
 
+ChartJS.register(Title, Tooltip, Legend, LineElement, LinearScale, PointElement, CategoryScale, ArcElement, BarElement);
+
+const valuationChartData = {
+  labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul'],
+  datasets: [{
+    label: 'Valor de Inventario (Q)',
+    backgroundColor: '#2e7d32',
+    borderColor: '#2e7d32',
+    data: [120000, 115000, 130000, 125000, 140000, 135000, 150000],
+    tension: 0.4
+  }]
+};
+const chartPlugins = {
+  legend: {
+    position: 'right' as const,
+    labels: {
+      font: { size: 9, family: 'var(--font-sans)' },
+      usePointStyle: true,
+      boxWidth: 12,
+      padding: 20
+    }
+  }
+};
+
+const valuationChartOptions = { 
+  responsive: true, 
+  maintainAspectRatio: false,
+  plugins: chartPlugins
+};
+
+const categoryChartData = {
+  labels: ['Lácteos', 'Abarrotes', 'Limpieza', 'Bebidas'],
+  datasets: [{
+    data: [45, 25, 20, 10],
+    backgroundColor: ['#1565c0', '#2e7d32', '#f57f17', '#c62828'],
+    borderWidth: 0
+  }]
+};
+const categoryChartOptions = { 
+  responsive: true, 
+  maintainAspectRatio: false,
+  plugins: chartPlugins
+};
+
+const mockFeed = [
+  { id: 1, type: 'out', user: 'Juan P.', action: 'retiró 5 unid. de', product: 'Demo Frijol', time: 'Hace 10 min' },
+  { id: 2, type: 'in', user: 'María S.', action: 'ingresó 20 unid. de', product: 'Demo Arroz', time: 'Hace 2 horas' },
+  { id: 3, type: 'out', user: 'Juan P.', action: 'retiró 2 unid. de', product: 'Cafe demo', time: 'Ayer' },
+];
+
+const mockAlerts = [
+  { id: 1, name: 'Demo Arroz', stock: 5, min: 10, supplier: 'Granos S.A.' },
+  { id: 2, name: 'Aceite 1L', stock: 2, min: 15, supplier: 'Aceitera La Rosa' },
+];
+
+const mockDeadStock = [
+  { id: 1, name: 'Jabón en Polvo XXL', days: 120, stock: 45, value: 'Q1,350' },
+  { id: 2, name: 'Atún en Agua', days: 95, stock: 120, value: 'Q960' },
+];
+
+const showFilters = ref(false);
+const activeTab = ref<'inventory' | 'sales' | 'products'>('inventory');
 const selectedPeriod = ref<AnalyticsPeriod>('30d');
 const selectedWindow = ref<'day' | 'week' | 'month'>('day');
 const selectedSort = ref<'outbound' | 'inbound' | 'stock_risk'>('outbound');
@@ -275,78 +455,36 @@ function fmt(value: number | null | undefined): string {
     : Number(value).toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-const chartMax = computed(() => {
-  const values = trendData.value.flatMap(point => [
-    Number(point.inbound_quantity),
-    Number(point.outbound_quantity),
-  ]);
-  return Math.max(1, Math.ceil(Math.max(...values, 0)));
+const trendChartData = computed(() => {
+  return {
+    labels: trendData.value.map(point => point.period_label),
+    datasets: [
+      {
+        label: 'Entradas',
+        backgroundColor: '#2e7d32',
+        borderRadius: 4,
+        data: trendData.value.map(point => Number(point.inbound_quantity)),
+      },
+      {
+        label: 'Salidas',
+        backgroundColor: '#e65100',
+        borderRadius: 4,
+        data: trendData.value.map(point => Number(point.outbound_quantity)),
+      }
+    ]
+  };
 });
 
-const yTicks = computed(() => {
-  const steps = 4;
-
-  return Array.from({ length: steps + 1 }, (_, index) => {
-    const ratio = (steps - index) / steps;
-    const value = chartMax.value * ratio;
-
-    return {
-      label: fmt(value),
-      y: CHART_HEIGHT - ratio * CHART_HEIGHT,
-    };
-  });
-});
-
-function getChartX(index: number, total: number): number {
-  return total <= 1 ? CHART_WIDTH / 2 : (index / (total - 1)) * CHART_WIDTH;
-}
-
-function getChartY(value: number): number {
-  return CHART_HEIGHT - (Number(value) / chartMax.value) * CHART_HEIGHT;
-}
-
-function buildChartPoints(key: 'inbound_quantity' | 'outbound_quantity'): ChartPoint[] {
-  return trendData.value.map((point, index) => ({
-    x: getChartX(index, trendData.value.length),
-    y: getChartY(Number(point[key])),
-    label: point.period_label,
-    value: Number(point[key]),
-  }));
-}
-
-function toPolyline(points: ChartPoint[]): string {
-  return points.map(point => `${point.x},${point.y}`).join(' ');
-}
-
-function toAreaPath(points: ChartPoint[]): string {
-  if (points.length === 0) return '';
-
-  const linePath = points.map(point => `L ${point.x} ${point.y}`).join(' ');
-  const first = points[0];
-  const last = points[points.length - 1];
-
-  return `M ${first.x} ${CHART_HEIGHT} ${linePath} L ${last.x} ${CHART_HEIGHT} Z`;
-}
-
-const inboundChartPoints = computed(() => buildChartPoints('inbound_quantity'));
-const outboundChartPoints = computed(() => buildChartPoints('outbound_quantity'));
-const inboundPolyline = computed(() => toPolyline(inboundChartPoints.value));
-const outboundPolyline = computed(() => toPolyline(outboundChartPoints.value));
-const inboundAreaPath = computed(() => toAreaPath(inboundChartPoints.value));
-const outboundAreaPath = computed(() => toAreaPath(outboundChartPoints.value));
-
-const xAxisLabels = computed(() => {
-  const total = trendData.value.length;
-  const step = Math.max(1, Math.ceil(total / 6));
-
-  return trendData.value
-    .map((point, index) => ({
-      text: point.period_label,
-      left: total <= 1 ? 50 : (index / (total - 1)) * 100,
-      index,
-    }))
-    .filter(label => label.index === 0 || label.index === total - 1 || label.index % step === 0);
-});
+const trendChartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: chartPlugins,
+  scales: {
+    y: {
+      beginAtZero: true
+    }
+  }
+};
 
 function riskClass(score: number): string {
   const n = Number(score);
@@ -449,9 +587,91 @@ onMounted(loadAll);
 .page-title {
   font-size: 2rem;
   font-weight: 700;
-  margin: 0;
+  margin: 0 0 16px 0;
   color: var(--color-text);
 }
+.header-main {
+  display: flex;
+  flex-direction: column;
+}
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.tabs-container {
+  display: flex;
+  gap: 8px;
+  background: var(--color-bg-surface);
+  border: 1.5px solid var(--color-structure-subtle);
+  border-radius: 10px;
+  padding: 4px;
+}
+.tab-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.tab-btn:hover {
+  color: var(--color-text);
+}
+.tab-btn.active {
+  background: var(--color-structure-base);
+  color: #fff;
+}
+.btn-filter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #fff;
+  border: 1.5px solid var(--color-structure-subtle);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-filter:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+@media (min-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: 2fr 1fr;
+  }
+  .dashboard-grid--1-1 {
+    grid-template-columns: 1fr 1fr;
+  }
+  .dashboard-grid--1-2 {
+    grid-template-columns: 1fr 2fr;
+  }
+}
+
+@media (max-width: 1023px) {
+  .analytics-page {
+    padding: 20px 16px;
+  }
+  .chart-section, .products-section {
+    padding: 20px !important;
+  }
+}
+
 .period-selector {
   display: flex;
   gap: 4px;
@@ -555,7 +775,7 @@ onMounted(loadAll);
   background: var(--color-bg-surface);
   border: 1.5px solid var(--color-structure-subtle);
   border-radius: 14px;
-  padding: 20px 24px;
+  padding: 32px;
   box-shadow: var(--shadow-card);
 }
 .window-selector {
@@ -741,7 +961,7 @@ onMounted(loadAll);
   background: var(--color-bg-surface);
   border: 1.5px solid var(--color-structure-subtle);
   border-radius: 14px;
-  padding: 20px 24px;
+  padding: 32px;
   box-shadow: var(--shadow-card);
 }
 .sort-select {
@@ -805,4 +1025,133 @@ onMounted(loadAll);
 .risk-badge--low  { background: #e8f5e9; color: #2e7d32; }
 .risk-badge--mid  { background: #fff3e0; color: #e65100; }
 .risk-badge--high { background: #ffebee; color: #c62828; }
+
+/* DRAWER */
+.drawer-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(2px);
+  z-index: 100;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+.drawer-overlay--open {
+  opacity: 1;
+  visibility: visible;
+}
+.drawer-panel {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: 360px;
+  background: #ffffff;
+  z-index: 101;
+  box-shadow: -4px 0 24px rgba(0,0,0,0.1);
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+}
+.drawer-panel--open {
+  transform: translateX(0);
+}
+.drawer-header {
+  padding: 24px;
+  border-bottom: 1.5px solid var(--color-structure-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.drawer-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-structure-base);
+}
+.drawer-close {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  padding: 4px;
+  border-radius: 6px;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.drawer-close:hover {
+  background: #f1f5f9;
+  color: var(--color-text);
+}
+.drawer-body {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.filter-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: 8px;
+}
+.filter-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--color-structure-subtle);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: var(--color-text);
+  outline: none;
+  font-family: var(--font-sans);
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+.filter-input:focus {
+  border-color: var(--color-structure-base);
+}
+.date-inputs, .range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.date-inputs span, .range-inputs span {
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+.drawer-footer {
+  padding: 24px;
+  border-top: 1.5px solid var(--color-structure-subtle);
+  display: flex;
+  gap: 12px;
+}
+.btn-clear, .btn-apply {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+.btn-clear {
+  background: #f1f5f9;
+  color: var(--color-text-secondary);
+}
+.btn-clear:hover {
+  background: #e2e8f0;
+}
+.btn-apply {
+  background: var(--color-structure-base);
+  color: #fff;
+}
+.btn-apply:hover {
+  opacity: 0.9;
+}
 </style>
