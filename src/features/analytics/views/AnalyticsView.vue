@@ -326,7 +326,7 @@ const valuationChartData = {
 };
 const chartPlugins = {
   legend: {
-    position: 'right',
+    position: 'right' as const,
     labels: {
       font: { size: 9, family: 'var(--font-sans)' },
       usePointStyle: true,
