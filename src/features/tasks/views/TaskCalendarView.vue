@@ -1,5 +1,6 @@
 <template>
   <div class="calendar-page">
+
     <div class="page-header">
       <div>
         <h1>Calendario de tareas</h1>
@@ -9,27 +10,21 @@
 
     <div class="calendar-card">
 
+      <!-- Toolbar -->
       <div class="calendar-toolbar">
 
-        <button
-          class="month-btn"
-          @click="previousMonth"
-        >
-          <ChevronLeft :size="20" />
-        </button>
-
-        <h2 class="calendar-title">
-          {{ currentMonth }}
-        </h2>
-
-        <div class="calendar-actions">
+        <div class="calendar-nav">
 
           <button
-            class="today-btn"
-            @click="goToToday"
+            class="month-btn"
+            @click="previousMonth"
           >
-            Hoy
+            <ChevronLeft :size="20" />
           </button>
+
+          <h2 class="calendar-title">
+            {{ currentMonth }}
+          </h2>
 
           <button
             class="month-btn"
@@ -40,9 +35,49 @@
 
         </div>
 
+        <div class="view-switch">
+
+          <button
+            class="calendar-btn"
+            @click="goToToday"
+          >
+            Hoy
+          </button>
+
+          <button
+            class="calendar-btn"
+            :class="{ 'calendar-btn--active': calendarView==='day' }"
+            @click="calendarView='day'"
+          >
+            Día
+          </button>
+
+          <button
+            class="calendar-btn"
+            :class="{ 'calendar-btn--active': calendarView==='week' }"
+            @click="calendarView='week'"
+          >
+            Semana
+          </button>
+
+          <button
+            class="calendar-btn"
+            :class="{ 'calendar-btn--active': calendarView==='month' }"
+            @click="calendarView='month'"
+          >
+            Mes
+          </button>
+
+        </div>
+
       </div>
 
-      <div class="calendar-grid">
+      <!-- ================= MES ================= -->
+
+      <div
+        v-if="calendarView==='month'"
+        class="calendar-grid"
+      >
 
         <div
           v-for="day in weekDays"
@@ -61,28 +96,177 @@
             outside:!day.currentMonth,
           }"
         >
+
           <span class="day-number">
             {{ day.day }}
           </span>
-        <div
-          v-for="task in day.currentMonth ? getTasksForDay(day.day) : []"
-          :key="task.id"
-          class="task-chip"
-          @click="editTask(task)"
-        >
-          <span
-            class="task-dot"
-            :class="priorityClass(task.priority)"
-          ></span>
 
-          <span
-            class="task-title"
-            :title="task.title"
+          <div
+            v-for="task in day.currentMonth ? getTasksForDay(day.day) : []"
+            :key="task.id"
+            class="task-chip"
+            @click="editTask(task)"
           >
-            {{ shortTitle(task.title) }}
-          </span>
+
+            <span
+              class="task-dot"
+              :class="priorityClass(task.priority)"
+            ></span>
+
+            <span
+              class="task-title"
+              :title="task.title"
+            >
+              {{ shortTitle(task.title) }}
+            </span>
+
+          </div>
 
         </div>
+
+      </div>
+
+      <!-- ================= SEMANA ================= -->
+
+      <div
+        v-else-if="calendarView==='week'"
+        class="week-view"
+      >
+
+        <div class="week-grid">
+
+          <div
+            v-for="day in weekDaysData"
+            :key="day.name"
+            class="week-column"
+          >
+
+            <div class="week-header">
+
+              <h3>{{ day.name }}</h3>
+
+              <span>{{ day.day }}</span>
+
+            </div>
+
+            <div class="week-body">
+
+              <div
+                v-for="task in getTasksForDay(day.day)"
+                :key="task.id"
+                class="task-chip"
+                @click="editTask(task)"
+              >
+
+                <span
+                  class="task-dot"
+                  :class="priorityClass(task.priority)"
+                ></span>
+
+                <span
+                  class="task-title"
+                  :title="task.title"
+                >
+                  {{ shortTitle(task.title) }}
+                </span>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- ================= DÍA ================= -->
+
+      <div
+        v-else
+        class="day-view"
+      >
+
+        <div class="day-header">
+
+          <h2 class="day-title">
+            {{ formattedCurrentDate }}
+          </h2>
+
+          <div class="day-divider"></div>
+
+          <div class="day-counter">
+
+            📋
+
+            <span>
+              {{ getTasksForCurrentDay().length }}
+              {{ getTasksForCurrentDay().length===1 ? 'tarea programada' : 'tareas programadas' }}
+            </span>
+
+          </div>
+
+        </div>
+
+        <div class="day-list">
+
+          <div
+            v-for="task in getTasksForCurrentDay()"
+            :key="task.id"
+            class="day-card"
+            @click="editTask(task)"
+          >
+
+            <div class="day-card-top">
+
+              <div class="day-card-title">
+
+                <span
+                  class="task-dot"
+                  :class="priorityClass(task.priority)"
+                ></span>
+
+                <strong>{{ task.title }}</strong>
+
+              </div>
+
+            </div>
+
+            <p class="day-description">
+              {{ task.description }}
+            </p>
+
+            <div class="day-footer">
+
+            <div class="assignee">
+                👤
+                {{ task.assignee }}
+            </div>
+
+              <span
+                class="priority-badge"
+                :class="priorityClass(task.priority)"
+              >
+                {{ task.priority }}
+              </span>
+
+            </div>
+
+          </div>
+
+          <div
+            v-if="getTasksForCurrentDay().length===0"
+            class="empty-day"
+          >
+
+            <h3>No hay tareas</h3>
+
+            <p>
+              No existen tareas programadas para este día.
+            </p>
+
+          </div>
+
         </div>
 
       </div>
@@ -97,23 +281,24 @@
     @close="showEditModal=false"
     @save="updateTask"
   />
+
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import { mockTasks } from '../data/mockTasks';
 import TaskEditModal from '../components/TaskEditModal.vue';
 import type { Task } from '../types';
 
 const weekDays=[
-  'Lun',
-  'Mar',
-  'Mié',
-  'Jue',
-  'Vie',
-  'Sáb',
-  'Dom',
+  'Lunes',
+  'Martes',
+  'Miércoles',
+  'Jueves',
+  'Viernes',
+  'Sábado',
+  'Domingo',
 ];
 
 const today=new Date();
@@ -134,6 +319,17 @@ const currentMonth=computed(()=>{
   const year=currentDate.value.getFullYear();
 
   return `${month.charAt(0).toUpperCase()+month.slice(1)} de ${year}`;
+});
+
+const formattedCurrentDate = computed(() => {
+
+  const text = currentDate.value.toLocaleDateString('es-ES', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+  return text.charAt(0).toUpperCase() + text.slice(1);
 });
 
 const calendarDays=computed(()=>{
@@ -192,7 +388,53 @@ const calendarDays=computed(()=>{
   return days;
 });
 
+const weekDaysData=computed(()=>{
+
+  const current=new Date(currentDate.value);
+
+  const day=current.getDay();
+
+  const diff=day===0?-6:1-day;
+
+  current.setDate(current.getDate()+diff);
+
+  return Array.from({ length:7 },(_,index)=>{
+
+    const date = new Date(current);
+
+    date.setDate(current.getDate()+index);
+
+    return{
+      name:weekDays[index],
+      day:date.getDate(),
+      date,
+    };
+  });
+});
+
+const calendarView=ref<'day'|'week'|'month'>('month');
+watch(calendarView, (view) => {
+
+  if (view === 'week' || view === 'day') {
+
+    currentDate.value = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+    );
+  }
+});
 function previousMonth(){
+
+  if(calendarView.value==='day'){
+
+    currentDate.value=new Date(
+      currentDate.value.getFullYear(),
+      currentDate.value.getMonth(),
+      currentDate.value.getDate()-1,
+    );
+    return;
+  }
 
   currentDate.value=new Date(
     currentDate.value.getFullYear(),
@@ -202,6 +444,17 @@ function previousMonth(){
 }
 
 function nextMonth(){
+
+  if(calendarView.value==='day'){
+
+    currentDate.value=new Date(
+      currentDate.value.getFullYear(),
+      currentDate.value.getMonth(),
+      currentDate.value.getDate()+1,
+    );
+
+    return;
+  }
 
   currentDate.value=new Date(
     currentDate.value.getFullYear(),
@@ -215,8 +468,9 @@ function goToToday(){
   currentDate.value=new Date(
     today.getFullYear(),
     today.getMonth(),
-    1,
+    today.getDate(),
   );
+
 }
 
 function editTask(task:Task){
@@ -238,12 +492,27 @@ function updateTask(updatedTask:Task){
 function getTasksForDay(day:number){
 
   return tasks.filter(task=>{
-    const date=new Date(task.dueDate);
-
+    const [year, month, taskDay] = task.dueDate
+      .split('-')
+      .map(Number);
     return(
-      date.getDate()===day &&
-      date.getMonth()===currentDate.value.getMonth() &&
-      date.getFullYear()===currentDate.value.getFullYear()
+      taskDay===day &&
+      month-1===currentDate.value.getMonth() &&
+      year===currentDate.value.getFullYear()
+    );
+  });
+}
+
+function getTasksForCurrentDay(){
+
+  return tasks.filter(task=>{
+    const [year, month, day] = task.dueDate
+      .split('-')
+      .map(Number);
+    return(
+      day===currentDate.value.getDate() &&
+      month-1===currentDate.value.getMonth() &&
+      year===currentDate.value.getFullYear()
     );
   });
 }
@@ -273,6 +542,15 @@ function shortTitle(title:string){
   min-height:100vh;
 }
 
+@media (max-width:640px){
+  .calendar-page{
+    padding:20px 16px;
+  }
+  .calendar-card{
+    overflow-x:auto;
+  }
+}
+
 .page-header{
   margin-bottom:28px;
 }
@@ -295,88 +573,119 @@ function shortTitle(title:string){
   border-radius:16px;
   box-shadow:var(--shadow-card);
   padding:28px;
+  overflow-x:auto;
 }
 
 .calendar-toolbar{
-  display:grid;
-  grid-template-columns:56px 1fr auto;
-  align-items:center;
-  margin-bottom:28px;
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+    margin-bottom:14px;
+    padding-bottom:20px;
+    border-bottom:1px solid #eef0f3;
+}
+
+.calendar-nav{
+    display:grid;
+    grid-template-columns:48px 1fr 48px;
+    align-items:center;
+    gap:20px;
 }
 
 .calendar-title{
-  margin:0;
-  text-align:center;
-  font-size:1.6rem;
-  font-weight:700;
-  color:var(--color-text);
+    text-align:center;
+    margin:0;
+    font-size:2rem;
+    font-weight:700;
 }
 
-.calendar-title h2{
-  margin:0;
-  font-size:1.6rem;
-  font-weight:700;
-  color:var(--color-text);
+.view-switch{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    flex-wrap:wrap;
 }
 
-.calendar-actions{
-  display:flex;
-  align-items:center;
-  gap:14px;
-  justify-self:end;
-}
-
-.today-btn{
-  width:68px;
-  height:42px;
+.calendar-btn{
   border:none;
-  border-radius:10px;
+  background:transparent;
+  padding:8px 16px;
+  font-size:.9rem;
+  font-weight:600;
+  color:var(--color-text-secondary);
+  border-radius:999px;
+  cursor:pointer;
+  white-space:nowrap;
+  transition:background .15s ease,color .15s ease,box-shadow .15s ease;
+}
+
+.calendar-btn:hover:not(.calendar-btn--active){
+  color:var(--color-text);
+}
+
+.calendar-btn--active{
   background:var(--color-structure-base);
   color:white;
-  cursor:pointer;
-  font-size:.95rem;
-  font-weight:600;
-  transition:.2s;
-}
-
-.today-btn:hover{
-  opacity:.9;
+  box-shadow:0 1px 3px rgba(16,24,40,.15);
 }
 
 .month-btn{
-  width:48px;
-  height:48px;
-  display:flex; 
+  width:40px;
+  height:40px;
+  display:flex;
   justify-content:center;
   align-items:center;
   border:none;
-  border-radius:10px;
+  border-radius:50%;
   background:var(--color-structure-base);
   color:white;
   cursor:pointer;
-  transition:.2s;
-} 
-
-Observ
+  flex-shrink:0;
+  transition:transform .15s ease,opacity .15s ease;
+}
 
 .month-btn:hover{
   opacity:.9;
+  transform:scale(1.05);
+}
+
+@media (max-width:640px){
+  .calendar-title{
+    font-size:1.25rem;
+  }
+  .month-btn{
+    width:34px;
+    height:34px;
+  }
+  .calendar-btn{
+    padding:6px 10px;
+    font-size:.82rem;
+  }
 }
 
 .calendar-grid{
   display:grid;
   grid-template-columns:repeat(7,1fr);
-  gap:14px;
+  grid-template-rows:auto repeat(6,1fr);
+  gap:10px;
+  height:650px;
+}
+
+.calendar-grid,
+.week-grid{
+    min-width:1000px;
 }
 
 .weekday{
   text-align:center;
   font-weight:700;
   color:var(--color-text-secondary);
+  padding-bottom:4px;
 }
 
 .day-cell{
-  height:120px;
+  height:100%;
+  min-height:0;
   border:1px solid #e0e4e9;
   border-radius:12px;
   padding:10px;
@@ -419,11 +728,8 @@ Observ
   align-items:center;
   gap:8px;
   width:100%;
-  max-width:100%;
-  margin-top:6px;
   overflow:hidden;
   box-sizing:border-box;
-  cursor:pointer;
 }
 
 .task-chip:hover{
@@ -453,9 +759,237 @@ Observ
 .task-title{
   flex:1;
   min-width:0;
-  max-width:100%;
   overflow:hidden;
   white-space:nowrap;
   text-overflow:ellipsis;
 }
+
+.week-view,
+.day-view{
+  min-height:650px;
+  display:flex;
+  flex-direction:column;
+}
+
+.week-view{
+  justify-content:flex-start;
+  align-items:stretch;
+  padding-top:8px;
+}
+
+.week-view h2,
+.day-view h2{
+  margin-bottom:12px;
+  color:var(--color-text);
+}
+
+.week-view p,
+.day-view p{
+  color:var(--color-text-secondary);
+}
+
+.week-grid{
+  display:grid;
+  grid-template-columns:repeat(7, minmax(0,1fr));
+  gap:16px;
+  width:100%;
+}
+
+.week-body{
+  flex:1;
+  padding:14px;
+  overflow-y:auto;
+}
+
+.week-header{
+  padding:16px;
+  text-align:center;
+  border-bottom:1px solid #edf1f7;
+  background:#f8fafc;
+}
+
+.week-header h3{
+  margin:0;
+  font-size:1rem;
+  color:var(--color-text);
+}
+
+.week-header span{
+  display:block;
+  margin-top:6px;
+  font-size:1.5rem;
+  font-weight:700;
+  color:var(--color-text);
+}
+
+.week-body{
+  flex:1;
+  padding:12px;
+  overflow-y:auto;
+  background:white;
+}
+
+.week-body .task-chip{
+  margin-bottom:10px;
+}
+
+.week-column{
+  width:100%;
+  height:520px;
+  border:1px solid #e4e8ef;
+  border-radius:12px;
+  background:white;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  box-sizing:border-box;
+}
+
+.week-body{
+    flex:1;
+    padding:12px;
+    overflow-y:auto;
+}
+
+@media (max-width:1100px){
+
+    .calendar-page{
+        padding:20px;
+    }
+
+    .calendar-grid,
+    .week-grid{
+        min-width:1100px;
+    }
+
+    .calendar-card{
+        overflow-x:auto;
+    }
+
+}
+
+.day-view{
+    align-items:stretch;
+    justify-content:flex-start;
+    text-align:left;
+    min-height:650px;
+}
+
+.day-header{
+    margin-bottom:32px;
+}
+
+.day-title{
+    margin:0;
+    font-size:2.2rem;
+    font-weight:700;
+    color:var(--color-text);
+}
+
+.day-counter{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-top:18px;
+    font-size:1.1rem;
+    font-weight:600;
+    color:var(--color-text);
+}
+
+.day-list{
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+}
+
+.day-card{
+    background:#fff;
+    border:1px solid #e5e9f0;
+    border-radius:18px;
+    padding:24px;
+    cursor:pointer;
+    transition:.25s;
+}
+
+.day-card:hover{
+    transform:translateY(-3px);
+    box-shadow:0 12px 24px rgba(0,0,0,.08);
+}
+
+.day-card-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:12px;
+}
+
+.day-card-title{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-size:1.45rem;
+    font-weight:700;
+}
+
+.day-description{
+    margin:18px 0;
+    font-size:1.05rem;
+    line-height:1.6;
+    color:var(--color-text-secondary);
+}
+
+.day-footer{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:24px;
+    font-size:.95rem;
+    color:var(--color-text-secondary);
+}
+
+.day-divider{
+    width:100%;
+    height:1px;
+    background:#e7ebf1;
+    margin:18px 0;
+}
+
+.empty-day{
+    margin-top:60px;
+    text-align:center;
+    color:var(--color-text-secondary);
+}
+
+.empty-day h3{
+    margin-bottom:10px;
+}
+
+.priority-badge{
+    padding:8px 18px;
+    border-radius:999px;
+    font-size:.9rem;
+    font-weight:700;
+}
+
+.priority-badge.high{
+    background:#FDECEC;
+    color:#D14343;
+}
+
+.priority-badge.medium{
+    background:#FEF4D7;
+    color:#B7791F;
+}
+
+.priority-badge.low{
+    background:#DCFCE7;
+    color:#15803D;
+}
+
+.assignee{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
 </style>
