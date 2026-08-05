@@ -10,7 +10,7 @@
         </div>
       </div>
       <div class="header-actions">
-        <button class="btn-filter">
+        <button class="btn-filter" @click="showFilters = true">
           <Filter :size="16" /> Filtros Avanzados
         </button>
         <div class="period-selector">
@@ -98,7 +98,7 @@
         </section>
       </div>
 
-      <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr;">
+      <div class="dashboard-grid dashboard-grid--1-1">
         <section class="products-section" style="padding: 24px;">
           <div class="section-header">
             <h2 class="section-title">Top Productos</h2>
@@ -220,7 +220,7 @@
           </div>
         </div>
       </section>
-      <div class="dashboard-grid" style="grid-template-columns: 1fr 2fr;">
+      <div class="dashboard-grid dashboard-grid--1-2">
         <section class="chart-section" style="padding: 24px;">
           <h2 class="section-title">Distribución por Categorías</h2>
           <div style="height: 280px; width: 100%; margin-top: 16px;">
@@ -253,12 +253,52 @@
       </div>
     </div>
 
+    <!-- ADVANCED FILTERS DRAWER -->
+    <div class="drawer-overlay" :class="{ 'drawer-overlay--open': showFilters }" @click="showFilters = false"></div>
+    <div class="drawer-panel" :class="{ 'drawer-panel--open': showFilters }">
+      <div class="drawer-header">
+        <h3>Filtros Avanzados</h3>
+        <button class="drawer-close" @click="showFilters = false"><X :size="20" /></button>
+      </div>
+      <div class="drawer-body">
+        <div class="filter-group">
+          <label>Rango de Fechas</label>
+          <div class="date-inputs">
+            <input type="date" class="filter-input" />
+            <span>a</span>
+            <input type="date" class="filter-input" />
+          </div>
+        </div>
+        <div class="filter-group">
+          <label>Categoría</label>
+          <select class="filter-input">
+            <option value="">Todas las categorías</option>
+            <option value="lacteos">Lácteos</option>
+            <option value="abarrotes">Abarrotes</option>
+            <option value="limpieza">Limpieza</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Rango de Stock</label>
+          <div class="range-inputs">
+            <input type="number" placeholder="Mín" class="filter-input" />
+            <span>-</span>
+            <input type="number" placeholder="Máx" class="filter-input" />
+          </div>
+        </div>
+      </div>
+      <div class="drawer-footer">
+        <button class="btn-clear" @click="showFilters = false">Limpiar</button>
+        <button class="btn-apply" @click="showFilters = false">Aplicar Filtros</button>
+      </div>
+    </div>
+
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue';
-import { Filter, ArrowUpRight, ArrowDownRight, AlertTriangle } from 'lucide-vue-next';
+import { Filter, ArrowUpRight, ArrowDownRight, AlertTriangle, X } from 'lucide-vue-next';
 import { Line, Doughnut, Bar } from 'vue-chartjs';
 import {
   Chart as ChartJS,
@@ -322,6 +362,7 @@ const mockDeadStock = [
   { id: 2, name: 'Atún en Agua', days: 95, stock: 120, value: 'Q960' },
 ];
 
+const showFilters = ref(false);
 const activeTab = ref<'inventory' | 'sales' | 'products'>('inventory');
 const selectedPeriod = ref<AnalyticsPeriod>('30d');
 const selectedWindow = ref<'day' | 'week' | 'month'>('day');
@@ -602,6 +643,21 @@ onMounted(loadAll);
 @media (min-width: 1024px) {
   .dashboard-grid {
     grid-template-columns: 2fr 1fr;
+  }
+  .dashboard-grid--1-1 {
+    grid-template-columns: 1fr 1fr;
+  }
+  .dashboard-grid--1-2 {
+    grid-template-columns: 1fr 2fr;
+  }
+}
+
+@media (max-width: 1023px) {
+  .analytics-page {
+    padding: 20px 16px;
+  }
+  .chart-section, .products-section {
+    padding: 20px !important;
   }
 }
 
@@ -958,4 +1014,133 @@ onMounted(loadAll);
 .risk-badge--low  { background: #e8f5e9; color: #2e7d32; }
 .risk-badge--mid  { background: #fff3e0; color: #e65100; }
 .risk-badge--high { background: #ffebee; color: #c62828; }
+
+/* DRAWER */
+.drawer-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(2px);
+  z-index: 100;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+.drawer-overlay--open {
+  opacity: 1;
+  visibility: visible;
+}
+.drawer-panel {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: 360px;
+  background: #ffffff;
+  z-index: 101;
+  box-shadow: -4px 0 24px rgba(0,0,0,0.1);
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+}
+.drawer-panel--open {
+  transform: translateX(0);
+}
+.drawer-header {
+  padding: 24px;
+  border-bottom: 1.5px solid var(--color-structure-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.drawer-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-structure-base);
+}
+.drawer-close {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  padding: 4px;
+  border-radius: 6px;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.drawer-close:hover {
+  background: #f1f5f9;
+  color: var(--color-text);
+}
+.drawer-body {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.filter-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: 8px;
+}
+.filter-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--color-structure-subtle);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: var(--color-text);
+  outline: none;
+  font-family: var(--font-sans);
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+.filter-input:focus {
+  border-color: var(--color-structure-base);
+}
+.date-inputs, .range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.date-inputs span, .range-inputs span {
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+.drawer-footer {
+  padding: 24px;
+  border-top: 1.5px solid var(--color-structure-subtle);
+  display: flex;
+  gap: 12px;
+}
+.btn-clear, .btn-apply {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+.btn-clear {
+  background: #f1f5f9;
+  color: var(--color-text-secondary);
+}
+.btn-clear:hover {
+  background: #e2e8f0;
+}
+.btn-apply {
+  background: var(--color-structure-base);
+  color: #fff;
+}
+.btn-apply:hover {
+  opacity: 0.9;
+}
 </style>
