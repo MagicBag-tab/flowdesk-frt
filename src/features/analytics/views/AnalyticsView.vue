@@ -76,73 +76,8 @@
         <div v-else-if="trendData.length === 0" class="chart-empty">
           No hay movimientos en este período.
         </div>
-        <div v-else class="trend-chart" role="img" aria-label="Tendencia de entradas y salidas de inventario">
-          <div class="chart-legend">
-            <span class="chart-legend__item">
-              <span class="chart-legend__swatch chart-legend__swatch--in"></span>
-              Entradas
-            </span>
-            <span class="chart-legend__item">
-              <span class="chart-legend__swatch chart-legend__swatch--out"></span>
-              Salidas
-            </span>
-          </div>
-
-          <div class="chart-plot">
-            <div class="chart-y-axis" aria-hidden="true">
-              <span v-for="tick in yTicks" :key="tick.label">{{ tick.label }}</span>
-            </div>
-
-            <div class="chart-drawing-area">
-              <svg
-                class="chart-svg"
-                :viewBox="`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`"
-                preserveAspectRatio="none"
-                aria-hidden="true"
-              >
-                <line
-                  v-for="tick in yTicks"
-                  :key="tick.y"
-                  class="chart-grid-line"
-                  x1="0"
-                  :x2="CHART_WIDTH"
-                  :y1="tick.y"
-                  :y2="tick.y"
-                />
-                <path class="chart-area chart-area--in" :d="inboundAreaPath" />
-                <path class="chart-area chart-area--out" :d="outboundAreaPath" />
-                <polyline class="chart-line chart-line--in" :points="inboundPolyline" />
-                <polyline class="chart-line chart-line--out" :points="outboundPolyline" />
-              </svg>
-
-              <!-- Puntos HTML para que no se deformen con el responsive del SVG -->
-              <div class="chart-points-overlay" aria-hidden="true">
-                <span
-                  v-for="point in inboundChartPoints"
-                  :key="`in-${point.label}`"
-                  class="html-point html-point--in"
-                  :style="{ left: `${(point.x / CHART_WIDTH) * 100}%`, top: `${(point.y / CHART_HEIGHT) * 100}%` }"
-                ></span>
-                <span
-                  v-for="point in outboundChartPoints"
-                  :key="`out-${point.label}`"
-                  class="html-point html-point--out"
-                  :style="{ left: `${(point.x / CHART_WIDTH) * 100}%`, top: `${(point.y / CHART_HEIGHT) * 100}%` }"
-                ></span>
-              </div>
-            </div>
-          </div>
-
-          <div class="chart-x-axis" aria-hidden="true">
-            <span
-              v-for="label in xAxisLabels"
-              :key="`${label.text}-${label.left}`"
-              class="chart-x-label"
-              :style="{ left: `${label.left}%` }"
-            >
-              {{ label.text }}
-            </span>
-          </div>
+        <div v-else class="trend-chart" style="height: 100%; min-height: 250px;">
+          <Bar :data="trendChartData" :options="trendChartOptions" />
         </div>
       </div>
     </section>
@@ -334,7 +269,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue';
 import { Filter, ArrowUpRight, ArrowDownRight, AlertTriangle } from 'lucide-vue-next';
-import { Line, Doughnut } from 'vue-chartjs';
+import { Line, Doughnut, Bar } from 'vue-chartjs';
 import {
   Chart as ChartJS,
   Title,
@@ -344,7 +279,8 @@ import {
   LinearScale,
   PointElement,
   CategoryScale,
-  ArcElement
+  ArcElement,
+  BarElement
 } from 'chart.js';
 import {
   fetchMetrics,
@@ -357,7 +293,7 @@ import {
 } from '@/features/analytics/api';
 import { getApiErrorMessage } from '@/services/apiClient';
 
-ChartJS.register(Title, Tooltip, Legend, LineElement, LinearScale, PointElement, CategoryScale, ArcElement);
+ChartJS.register(Title, Tooltip, Legend, LineElement, LinearScale, PointElement, CategoryScale, ArcElement, BarElement);
 
 const valuationChartData = {
   labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul'],
@@ -478,78 +414,35 @@ function fmt(value: number | null | undefined): string {
     : Number(value).toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-const chartMax = computed(() => {
-  const values = trendData.value.flatMap(point => [
-    Number(point.inbound_quantity),
-    Number(point.outbound_quantity),
-  ]);
-  return Math.max(1, Math.ceil(Math.max(...values, 0)));
+const trendChartData = computed(() => {
+  return {
+    labels: trendData.value.map(point => point.period_label),
+    datasets: [
+      {
+        label: 'Entradas',
+        backgroundColor: '#2e7d32',
+        borderRadius: 4,
+        data: trendData.value.map(point => Number(point.inbound_quantity)),
+      },
+      {
+        label: 'Salidas',
+        backgroundColor: '#e65100',
+        borderRadius: 4,
+        data: trendData.value.map(point => Number(point.outbound_quantity)),
+      }
+    ]
+  };
 });
 
-const yTicks = computed(() => {
-  const steps = 4;
-
-  return Array.from({ length: steps + 1 }, (_, index) => {
-    const ratio = (steps - index) / steps;
-    const value = chartMax.value * ratio;
-
-    return {
-      label: fmt(value),
-      y: CHART_HEIGHT - ratio * CHART_HEIGHT,
-    };
-  });
-});
-
-function getChartX(index: number, total: number): number {
-  return total <= 1 ? CHART_WIDTH / 2 : (index / (total - 1)) * CHART_WIDTH;
-}
-
-function getChartY(value: number): number {
-  return CHART_HEIGHT - (Number(value) / chartMax.value) * CHART_HEIGHT;
-}
-
-function buildChartPoints(key: 'inbound_quantity' | 'outbound_quantity'): ChartPoint[] {
-  return trendData.value.map((point, index) => ({
-    x: getChartX(index, trendData.value.length),
-    y: getChartY(Number(point[key])),
-    label: point.period_label,
-    value: Number(point[key]),
-  }));
-}
-
-function toPolyline(points: ChartPoint[]): string {
-  return points.map(point => `${point.x},${point.y}`).join(' ');
-}
-
-function toAreaPath(points: ChartPoint[]): string {
-  if (points.length === 0) return '';
-
-  const linePath = points.map(point => `L ${point.x} ${point.y}`).join(' ');
-  const first = points[0];
-  const last = points[points.length - 1];
-
-  return `M ${first.x} ${CHART_HEIGHT} ${linePath} L ${last.x} ${CHART_HEIGHT} Z`;
-}
-
-const inboundChartPoints = computed(() => buildChartPoints('inbound_quantity'));
-const outboundChartPoints = computed(() => buildChartPoints('outbound_quantity'));
-const inboundPolyline = computed(() => toPolyline(inboundChartPoints.value));
-const outboundPolyline = computed(() => toPolyline(outboundChartPoints.value));
-const inboundAreaPath = computed(() => toAreaPath(inboundChartPoints.value));
-const outboundAreaPath = computed(() => toAreaPath(outboundChartPoints.value));
-
-const xAxisLabels = computed(() => {
-  const total = trendData.value.length;
-  const step = Math.max(1, Math.ceil(total / 6));
-
-  return trendData.value
-    .map((point, index) => ({
-      text: point.period_label,
-      left: total <= 1 ? 50 : (index / (total - 1)) * 100,
-      index,
-    }))
-    .filter(label => label.index === 0 || label.index === total - 1 || label.index % step === 0);
-});
+const trendChartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  scales: {
+    y: {
+      beginAtZero: true
+    }
+  }
+};
 
 function riskClass(score: number): string {
   const n = Number(score);
