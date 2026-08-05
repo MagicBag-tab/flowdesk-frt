@@ -53,17 +53,6 @@
         <section class="chart-section" style="padding: 24px;">
           <div class="section-header">
             <h2 class="section-title">Tendencia de movimientos</h2>
-            <div class="window-selector">
-              <button
-                v-for="opt in windowOptions"
-                :key="opt.value"
-                class="window-btn"
-                :class="{ 'window-btn--active': selectedWindow === opt.value }"
-                @click="changeWindow(opt.value)"
-              >
-                {{ opt.label }}
-              </button>
-            </div>
           </div>
           <div class="chart-wrapper">
             <div v-if="trendLoading" class="chart-skeleton">
@@ -335,16 +324,37 @@ const valuationChartData = {
     tension: 0.4
   }]
 };
-const valuationChartOptions = { responsive: true, maintainAspectRatio: false };
+const chartPlugins = {
+  legend: {
+    position: 'right',
+    labels: {
+      font: { size: 9, family: 'var(--font-sans)' },
+      usePointStyle: true,
+      boxWidth: 12,
+      padding: 20
+    }
+  }
+};
+
+const valuationChartOptions = { 
+  responsive: true, 
+  maintainAspectRatio: false,
+  plugins: chartPlugins
+};
 
 const categoryChartData = {
-  labels: ['Lácteos', 'Abarrotes', 'Bebidas', 'Limpieza', 'Otros'],
+  labels: ['Lácteos', 'Abarrotes', 'Limpieza', 'Bebidas'],
   datasets: [{
-    backgroundColor: ['#42A5F5', '#66BB6A', '#FFA726', '#AB47BC', '#78909C'],
-    data: [40, 20, 15, 15, 10]
+    data: [45, 25, 20, 10],
+    backgroundColor: ['#1565c0', '#2e7d32', '#f57f17', '#c62828'],
+    borderWidth: 0
   }]
 };
-const categoryChartOptions = { responsive: true, maintainAspectRatio: false };
+const categoryChartOptions = { 
+  responsive: true, 
+  maintainAspectRatio: false,
+  plugins: chartPlugins
+};
 
 const mockFeed = [
   { id: 1, type: 'out', user: 'Juan P.', action: 'retiró 5 unid. de', product: 'Demo Frijol', time: 'Hace 10 min' },
@@ -468,6 +478,7 @@ const trendChartData = computed(() => {
 const trendChartOptions = {
   responsive: true,
   maintainAspectRatio: false,
+  plugins: chartPlugins,
   scales: {
     y: {
       beginAtZero: true
