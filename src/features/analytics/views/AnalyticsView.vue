@@ -192,6 +192,48 @@
           </tbody>
         </table>
       </div>
+    </section>
+  </div>
+
+      <div class="dashboard-grid">
+        <section class="chart-section" style="padding: 24px;">
+          <h2 class="section-title">Feed de Últimos Movimientos</h2>
+          <div class="feed-list" style="margin-top: 16px; display: flex; flex-direction: column; gap: 12px;">
+            <div v-for="item in mockFeed" :key="item.id" style="display: flex; gap: 12px; align-items: center; padding: 12px; background: #f8fafc; border-radius: 8px;">
+              <div :style="{ color: item.type === 'in' ? '#2e7d32' : '#e65100' }">
+                <ArrowDownRight v-if="item.type === 'in'" />
+                <ArrowUpRight v-else />
+              </div>
+              <div style="flex: 1; font-size: 0.88rem;">
+                <strong>{{ item.user }}</strong> {{ item.action }} <strong>{{ item.product }}</strong>
+              </div>
+              <span style="font-size: 0.75rem; color: var(--color-text-muted);">{{ item.time }}</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="products-section" style="padding: 24px;">
+          <h2 class="section-title">Alertas de Reabastecimiento</h2>
+          <div class="table-container" style="margin-top: 16px;">
+            <table class="products-table">
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Stock</th>
+                  <th>Mínimo</th>
+                  <th>Proveedor</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="alert in mockAlerts" :key="alert.id">
+                  <td class="td-name">{{ alert.name }}</td>
+                  <td style="color: #c62828; font-weight: bold;">{{ alert.stock }}</td>
+                  <td>{{ alert.min }}</td>
+                  <td style="color: var(--color-text-muted);">{{ alert.supplier }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </section>
       </div>
     </div>
@@ -227,11 +269,14 @@
           </div>
         </div>
       </section>
-      <div class="dashboard-grid mt-4">
-        <section class="chart-section" style="display:flex; align-items:center; justify-content:center; min-height:300px;">
-           <p class="chart-empty">Gráfica de Ventas (Datos Simulados)</p>
+      <div class="dashboard-grid">
+        <section class="chart-section" style="padding: 24px;">
+          <h2 class="section-title">Valoración Financiera del Inventario</h2>
+          <div style="height: 300px; width: 100%; margin-top: 16px;">
+            <Line :data="valuationChartData" :options="valuationChartOptions" />
+          </div>
         </section>
-        <section class="products-section" style="display:flex; align-items:center; justify-content:center; min-height:300px;">
+        <section class="products-section" style="padding: 24px; display:flex; align-items:center; justify-content:center; min-height:300px;">
            <p class="chart-empty">Top Categorías (Datos Simulados)</p>
         </section>
       </div>
@@ -250,9 +295,35 @@
           </div>
         </div>
       </section>
-      <div class="dashboard-grid mt-4" style="grid-template-columns: 1fr;">
-        <section class="products-section" style="display:flex; align-items:center; justify-content:center; min-height:300px;">
-           <p class="chart-empty">Catálogo Visual (Datos Simulados)</p>
+      <div class="dashboard-grid" style="grid-template-columns: 1fr 2fr;">
+        <section class="chart-section" style="padding: 24px;">
+          <h2 class="section-title">Distribución por Categorías</h2>
+          <div style="height: 280px; width: 100%; margin-top: 16px;">
+            <Doughnut :data="categoryChartData" :options="categoryChartOptions" />
+          </div>
+        </section>
+        <section class="products-section" style="padding: 24px;">
+          <h2 class="section-title">Reporte de Stock Muerto</h2>
+          <div class="table-container" style="margin-top: 16px;">
+            <table class="products-table">
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Días sin movimiento</th>
+                  <th>Stock Estancado</th>
+                  <th>Valor Congelado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="item in mockDeadStock" :key="item.id">
+                  <td class="td-name">{{ item.name }}</td>
+                  <td style="color: #e65100; font-weight: bold;">{{ item.days }} días</td>
+                  <td>{{ item.stock }}</td>
+                  <td style="color: #c62828; font-weight: bold;">{{ item.value }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </section>
       </div>
     </div>
@@ -262,7 +333,19 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue';
-import { Filter } from 'lucide-vue-next';
+import { Filter, ArrowUpRight, ArrowDownRight, AlertTriangle } from 'lucide-vue-next';
+import { Line, Doughnut } from 'vue-chartjs';
+import {
+  Chart as ChartJS,
+  Title,
+  Tooltip,
+  Legend,
+  LineElement,
+  LinearScale,
+  PointElement,
+  CategoryScale,
+  ArcElement
+} from 'chart.js';
 import {
   fetchMetrics,
   fetchTrend,
@@ -273,6 +356,45 @@ import {
   type ProductAnalyticsRow,
 } from '@/features/analytics/api';
 import { getApiErrorMessage } from '@/services/apiClient';
+
+ChartJS.register(Title, Tooltip, Legend, LineElement, LinearScale, PointElement, CategoryScale, ArcElement);
+
+const valuationChartData = {
+  labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul'],
+  datasets: [{
+    label: 'Valor de Inventario (Q)',
+    backgroundColor: '#2e7d32',
+    borderColor: '#2e7d32',
+    data: [120000, 115000, 130000, 125000, 140000, 135000, 150000],
+    tension: 0.4
+  }]
+};
+const valuationChartOptions = { responsive: true, maintainAspectRatio: false };
+
+const categoryChartData = {
+  labels: ['Lácteos', 'Abarrotes', 'Bebidas', 'Limpieza', 'Otros'],
+  datasets: [{
+    backgroundColor: ['#42A5F5', '#66BB6A', '#FFA726', '#AB47BC', '#78909C'],
+    data: [40, 20, 15, 15, 10]
+  }]
+};
+const categoryChartOptions = { responsive: true, maintainAspectRatio: false };
+
+const mockFeed = [
+  { id: 1, type: 'out', user: 'Juan P.', action: 'retiró 5 unid. de', product: 'Demo Frijol', time: 'Hace 10 min' },
+  { id: 2, type: 'in', user: 'María S.', action: 'ingresó 20 unid. de', product: 'Demo Arroz', time: 'Hace 2 horas' },
+  { id: 3, type: 'out', user: 'Juan P.', action: 'retiró 2 unid. de', product: 'Cafe demo', time: 'Ayer' },
+];
+
+const mockAlerts = [
+  { id: 1, name: 'Demo Arroz', stock: 5, min: 10, supplier: 'Granos S.A.' },
+  { id: 2, name: 'Aceite 1L', stock: 2, min: 15, supplier: 'Aceitera La Rosa' },
+];
+
+const mockDeadStock = [
+  { id: 1, name: 'Jabón en Polvo XXL', days: 120, stock: 45, value: 'Q1,350' },
+  { id: 2, name: 'Atún en Agua', days: 95, stock: 120, value: 'Q960' },
+];
 
 const activeTab = ref<'inventory' | 'sales' | 'products'>('inventory');
 const selectedPeriod = ref<AnalyticsPeriod>('30d');
