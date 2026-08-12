@@ -10,7 +10,7 @@ export function resolveApiBaseUrl(rawApiBaseUrl?: string): string {
   const configured = rawApiBaseUrl?.trim() ?? '';
 
   if (import.meta.env.PROD) {
-    return '/api';
+    return '';
   }
 
   return (configured || '').replace(/\/+$/, '');
