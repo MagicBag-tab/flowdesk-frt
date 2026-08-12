@@ -19,6 +19,7 @@ import SuppliersView from '@/features/suppliers/views/SuppliersView.vue';
 import LandingPageView from '@/features/landingPage/LandingPageView.vue';
 import TaskCalendarView from '@/features/tasks/views/TaskCalendarView.vue';
 import InventoryView from '@/features/inventory/views/InventoryView.vue';
+import ClientView from '@/features/clients/views/ClientView.vue';
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -183,6 +184,16 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresRole: ['admin', 'manager', 'employee'],
           title: 'Proveedores',
+        },
+      },
+      {
+        path: 'clients',
+        name: 'clients',
+        component: ClientView,
+        meta: {
+          requiresAuth: true,
+          requiresRole: ['admin', 'manager', 'employee'],
+          title: 'Clientes',
         },
       },
       //Se agregan nuevas features al menú principal aquí, como movimiento, análisis, clientes, etc.
