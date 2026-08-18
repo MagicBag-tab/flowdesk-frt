@@ -42,7 +42,7 @@
 
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
-import { RouterLink } from 'vue-router';
+import { RouterLink, useRoute } from 'vue-router';
 import { forgotPassword } from '@/features/auth/api';
 import { getApiErrorMessage } from '@/services/apiClient';
 
@@ -51,8 +51,10 @@ interface ForgotPasswordForm {
     email: string;
 }
 
+const route = useRoute();
+
 const form = reactive<ForgotPasswordForm>({
-  email: '',
+  email: typeof route.query.email === 'string' ? route.query.email : '',
 });
 
 const errors = reactive<Record<keyof ForgotPasswordForm, string>>({

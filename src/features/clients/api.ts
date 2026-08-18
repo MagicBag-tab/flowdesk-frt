@@ -25,13 +25,6 @@ export interface ClientUpdatePayload {
   direccion?: string | null;
 }
 
-// ==========================================
-// API Functions
-// ==========================================
-
-/**
- * Obtener lista de clientes (Opcional: buscar por nombre y filtrar por estado)
- */
 export function fetchClients(search?: string, active_only?: boolean): Promise<Client[]> {
   const params = new URLSearchParams();
   if (search) params.append('search', search);
@@ -46,9 +39,7 @@ export function fetchClients(search?: string, active_only?: boolean): Promise<Cl
   });
 }
 
-/**
- * Obtener un cliente por ID
- */
+
 export function getClient(id: string): Promise<Client> {
   return apiClient.request<Client>(`/api/v1/commercial/clients/${id}`, {
     method: 'GET',
@@ -56,9 +47,6 @@ export function getClient(id: string): Promise<Client> {
   });
 }
 
-/**
- * Crear un nuevo cliente
- */
 export function createClient(payload: ClientCreatePayload): Promise<Client> {
   return apiClient.request<Client>('/api/v1/commercial/clients', {
     method: 'POST',
@@ -67,9 +55,7 @@ export function createClient(payload: ClientCreatePayload): Promise<Client> {
   });
 }
 
-/**
- * Actualizar los datos de un cliente existente
- */
+
 export function updateClient(id: string, payload: ClientUpdatePayload): Promise<Client> {
   return apiClient.request<Client>(`/api/v1/commercial/clients/${id}`, {
     method: 'PUT',
@@ -78,9 +64,6 @@ export function updateClient(id: string, payload: ClientUpdatePayload): Promise<
   });
 }
 
-/**
- * Activar o desactivar un cliente
- */
 export function toggleClientStatus(id: string, is_active: boolean): Promise<Client> {
   return apiClient.request<Client>(`/api/v1/commercial/clients/${id}/status`, {
     method: 'PATCH',
@@ -89,9 +72,7 @@ export function toggleClientStatus(id: string, is_active: boolean): Promise<Clie
   });
 }
 
-/**
- * Eliminar (Soft delete) un cliente
- */
+
 export function deleteClient(id: string): Promise<void> {
   return apiClient.request<void>(`/api/v1/commercial/clients/${id}`, {
     method: 'DELETE',

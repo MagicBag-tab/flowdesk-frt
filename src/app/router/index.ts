@@ -20,6 +20,7 @@ import LandingPageView from '@/features/landingPage/LandingPageView.vue';
 import TaskCalendarView from '@/features/tasks/views/TaskCalendarView.vue';
 import InventoryView from '@/features/inventory/views/InventoryView.vue';
 import ClientView from '@/features/clients/views/ClientView.vue';
+import ProfileView from '@/features/profile/views/ProfileView.vue';
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -68,6 +69,8 @@ const routes: RouteRecordRaw[] = [
         name: 'forgot-password',
         component: ForgotPasswordView,
         meta: {
+          // Accesible también con sesión iniciada: el perfil enlaza aquí para cambiar la contraseña.
+          guestOnly: false,
           title: 'Olvide Contraseña',
         },
       },
@@ -76,6 +79,8 @@ const routes: RouteRecordRaw[] = [
         name: 'reset-password',
         component: ResetPasswordView,
         meta: {
+          // El enlace del correo debe completarse aunque el usuario siga con sesión iniciada.
+          guestOnly: false,
           title: 'Recuperar Contraseña',
         },
       },
@@ -194,6 +199,16 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresRole: ['admin', 'manager', 'employee'],
           title: 'Clientes',
+        },
+      },
+      {
+        path: 'profile',
+        name: 'profile',
+        component: ProfileView,
+        meta: {
+          requiresAuth: true,
+          requiresRole: ['superadmin', 'admin', 'manager', 'employee'],
+          title: 'Mi Perfil',
         },
       },
       //Se agregan nuevas features al menú principal aquí, como movimiento, análisis, clientes, etc.
