@@ -54,6 +54,18 @@
             </div>
           </div>
 
+          <!-- Filtro Adicional: Estado -->
+          <div class="form-group">
+            <label>Estado de los registros</label>
+            <div class="select-wrapper">
+              <select v-model="form.status">
+                <option value="all">Todos</option>
+                <option value="active">Solo Activos</option>
+                <option value="inactive">Solo Inactivos</option>
+              </select>
+            </div>
+          </div>
+
           <button type="submit" class="btn-generate" :disabled="isLoading">
             <span v-if="isLoading">Generando...</span>
             <span v-else>Generar Vista Previa</span>
@@ -124,7 +136,8 @@ const form = reactive({
   module: 'inventory',
   type: 'current_stock',
   startDate: '',
-  endDate: ''
+  endDate: '',
+  status: 'all'
 });
 
 // Auto-adjust default type when module changes
