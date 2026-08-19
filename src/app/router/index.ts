@@ -21,6 +21,7 @@ import TaskCalendarView from '@/features/tasks/views/TaskCalendarView.vue';
 import InventoryView from '@/features/inventory/views/InventoryView.vue';
 import ClientView from '@/features/clients/views/ClientView.vue';
 import ProfileView from '@/features/profile/views/ProfileView.vue';
+import ReportsView from '@/features/reports/views/ReportsView.vue';
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -209,6 +210,16 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresRole: ['superadmin', 'admin', 'manager', 'employee'],
           title: 'Mi Perfil',
+        },
+      },
+      {
+        path: 'reports',
+        name: 'reports',
+        component: ReportsView,
+        meta: {
+          requiresAuth: true,
+          requiresRole: ['admin', 'manager'],
+          title: 'Reportes',
         },
       },
       //Se agregan nuevas features al menú principal aquí, como movimiento, análisis, clientes, etc.
