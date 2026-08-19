@@ -264,8 +264,10 @@ function exportPDF() {
   color: var(--color-text-secondary);
 }
 .select-wrapper select, .date-input {
+  box-sizing: border-box;
   width: 100%;
-  padding: 10px 14px;
+  min-width: 0;
+  padding: 10px 10px;
   border: 1.5px solid var(--color-structure-subtle);
   border-radius: 8px;
   background: #fff;
@@ -281,7 +283,7 @@ function exportPDF() {
 
 .form-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 12px;
 }
 
