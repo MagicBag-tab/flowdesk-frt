@@ -125,12 +125,16 @@
               <p class="filtros-sub">Columnas Visibles</p>
               <button type="button" class="btn-check-all" @click="checkAllColumns">Todas</button>
             </div>
-            <div class="columns-grid">
-              <label v-for="col in availableColumns" :key="col" class="checkbox-label">
-                <input type="checkbox" :value="col" v-model="form.selectedColumns" class="custom-checkbox" />
-                <span class="checkbox-text">{{ col }}</span>
-              </label>
-            </div>
+            <ul class="filtros-list">
+              <li v-for="col in availableColumns" :key="col" @click="toggleColumn(col)" class="col-item">
+                <span class="checkbox" :class="{ checked: form.selectedColumns.includes(col) }">
+                  <svg v-if="form.selectedColumns.includes(col)" class="checkbox__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </span>
+                {{ col }}
+              </li>
+            </ul>
             <p v-if="form.selectedColumns.length === 0" class="error-msg">Selecciona al menos una.</p>
           </div>
 
@@ -198,6 +202,15 @@ onMounted(() => {
 
 function checkAllColumns() {
   form.selectedColumns = [...availableColumns.value];
+}
+
+function toggleColumn(col: string) {
+  const idx = form.selectedColumns.indexOf(col);
+  if (idx === -1) {
+    form.selectedColumns.push(col);
+  } else {
+    form.selectedColumns.splice(idx, 1);
+  }
 }
 
 const isLoading = ref(false);
@@ -439,51 +452,46 @@ function exportPDF() {
   cursor: pointer;
   padding: 0;
 }
-.columns-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.filtros-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
-.checkbox-label {
+.col-item {
   display: flex;
   align-items: center;
   gap: 8px;
+  padding: 4px 2px;
+  border-radius: 6px;
   cursor: pointer;
+  font-size: 0.83rem;
+  color: var(--color-text-secondary);
+  transition: background 0.12s;
   user-select: none;
 }
-.checkbox-label input[type="checkbox"] {
-  appearance: none;
-  background-color: transparent;
-  margin: 0;
-  width: 14px;
-  height: 14px;
-  border: 1.5px solid #dde3ec;
-  border-radius: 4px;
-  display: grid;
-  place-content: center;
-  transition: all 0.12s;
-  cursor: pointer;
+.col-item:hover {
+  background: rgba(0, 0, 0, 0.04);
 }
-.checkbox-label input[type="checkbox"]::before {
-  content: "";
-  width: 8px;
-  height: 8px;
-  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
-  transform: scale(0);
-  transform-origin: center;
-  transition: 120ms transform ease-in-out;
-  background-color: #fff;
+.checkbox {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #b0bbd4;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: #fff;
+  transition: all 0.14s;
 }
-.checkbox-label input[type="checkbox"]:checked {
-  background-color: var(--color-structure-base);
-  border-color: var(--color-structure-base);
+.checkbox.checked {
+  background: #4a90d9;
+  border-color: #4a90d9;
 }
-.checkbox-label input[type="checkbox"]:checked::before {
-  transform: scale(1);
-}
-.checkbox-text {
-  font-size: 0.78rem;
-  color: var(--color-text-secondary);
+.checkbox__check {
+  width: 10px;
+  height: 10px;
+  color: #fff;
 }
 .error-msg {
   color: #ef4444;
