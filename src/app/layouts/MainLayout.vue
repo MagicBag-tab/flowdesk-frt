@@ -150,12 +150,15 @@ const navItems = [
     label: 'Clientes',
     to: { name: 'clients' },
     roles: ['admin', 'manager', 'employee'],
-    icon: `<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" 
-    viewBox="0 0 25 25"><title>Shopping Cart</title>
-    <path id="Shopping_Cart" data-name="Shopping Cart" 
-    d="M24.71,5.49a1.24,1.24,0,0,0-1-.47L6.4,5,5.63,1.93A1.25,1.25,0,0,0,4.42,1H0V2H4.42a.25.25,0,0,1,.24.18L8.37,17.07A1.25,1.25,0,0,0,9.58,18h12a1.23,1.23,0,0,0,1.22-1L25,6.55A1.24,1.24,0,0,0,24.71,5.49ZM13,21a2,2,0,1,1-2-2A2,2,0,0,1,13,21Zm9,0a2,2,0,1,1-2-2A2,2,0,0,1,22,21Z" fill="#fff">
-    </path>
-    </svg>`,
+    icon: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="m11 17 2 2a1 1 0 1 0 3-3"/>
+            <path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/>
+            <path d="m21 3 1 11h-2"/>
+            <path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/>
+            <path d="M3 4h8"/>
+          </svg>`,
   },
   {
     name: 'profile',
