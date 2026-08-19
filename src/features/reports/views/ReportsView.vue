@@ -66,7 +66,19 @@
             </div>
           </div>
 
-          <button type="submit" class="btn-generate" :disabled="isLoading">
+          <!-- Selección de Columnas (Personalización) -->
+          <div class="form-group">
+            <label>Columnas a incluir</label>
+            <div class="columns-grid">
+              <label v-for="col in availableColumns" :key="col" class="checkbox-label">
+                <input type="checkbox" :value="col" v-model="form.selectedColumns" />
+                {{ col }}
+              </label>
+            </div>
+            <p v-if="form.selectedColumns.length === 0" class="error-msg">Debes seleccionar al menos una columna.</p>
+          </div>
+
+          <button type="submit" class="btn-generate" :disabled="isLoading || form.selectedColumns.length === 0">
             <span v-if="isLoading">Generando...</span>
             <span v-else>Generar Vista Previa</span>
           </button>
@@ -130,20 +142,43 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch } from 'vue';
+import { ref, reactive, watch, computed, onMounted } from 'vue';
+
+const COLUMNS_MAP: Record<string, string[]> = {
+  current_stock: ['SKU', 'Producto', 'Categoría', 'Stock', 'Valor Unitario', 'Valor Total', 'Estado'],
+  movements: ['ID', 'Fecha', 'Tipo', 'Producto', 'Cantidad', 'Usuario'],
+  dead_stock: ['SKU', 'Producto', 'Categoría', 'Días sin mover', 'Stock Actual'],
+  sales_summary: ['ID Venta', 'Fecha', 'Cliente', 'Total Facturado', 'Vendedor'],
+  clients_list: ['ID', 'Cliente', 'RUT', 'Última Compra', 'Total Facturado', 'Estado']
+};
 
 const form = reactive({
   module: 'inventory',
   type: 'current_stock',
   startDate: '',
   endDate: '',
-  status: 'all'
+  status: 'all',
+  selectedColumns: [] as string[]
+});
+
+const availableColumns = computed(() => {
+  return COLUMNS_MAP[form.type] || [];
+});
+
+// Resetea las columnas seleccionadas cuando cambia el tipo de reporte
+watch(() => form.type, () => {
+  form.selectedColumns = [...availableColumns.value];
 });
 
 // Auto-adjust default type when module changes
 watch(() => form.module, (newVal) => {
   if (newVal === 'inventory') form.type = 'current_stock';
   else form.type = 'sales_summary';
+});
+
+// Seleccionar todo por defecto al montar
+onMounted(() => {
+  form.selectedColumns = [...availableColumns.value];
 });
 
 const isLoading = ref(false);
@@ -166,29 +201,48 @@ function getReportTitle() {
 }
 
 async function generatePreview() {
+  if (form.selectedColumns.length === 0) return;
+  
   isLoading.value = true;
   hasPreview.value = false;
   
-  // MOCK: Simular llamada al backend
+  // MOCK: Simular llamada al backend y filtrado de columnas
   setTimeout(() => {
     isLoading.value = false;
     hasPreview.value = true;
     
+    // Asignar solo las columnas seleccionadas por el usuario
+    previewData.columns = [...form.selectedColumns];
+    
+    let rawRows: any[] = [];
+    
     if (form.module === 'inventory') {
-      previewData.columns = ['SKU', 'Producto', 'Categoría', 'Stock', 'Valor Unitario', 'Valor Total'];
-      previewData.rows = [
-        { 'SKU': 'PRD-001', 'Producto': 'Demo Frijol', 'Categoría': 'Granos', 'Stock': 120, 'Valor Unitario': '$15.00', 'Valor Total': '$1,800.00' },
-        { 'SKU': 'PRD-002', 'Producto': 'Demo Arroz', 'Categoría': 'Granos', 'Stock': 350, 'Valor Unitario': '$10.00', 'Valor Total': '$3,500.00' },
-        { 'SKU': 'PRD-003', 'Producto': 'Aceite de Girasol', 'Categoría': 'Abarrotes', 'Stock': 45, 'Valor Unitario': '$22.50', 'Valor Total': '$1,012.50' },
-        { 'SKU': 'PRD-004', 'Producto': 'Galletas Surtidas', 'Categoría': 'Snacks', 'Stock': 80, 'Valor Unitario': '$12.00', 'Valor Total': '$960.00' },
-      ];
+      if (form.type === 'current_stock') {
+        rawRows = [
+          { 'SKU': 'PRD-001', 'Producto': 'Demo Frijol', 'Categoría': 'Granos', 'Stock': 120, 'Valor Unitario': '$15.00', 'Valor Total': '$1,800.00', 'Estado': 'Activo' },
+          { 'SKU': 'PRD-002', 'Producto': 'Demo Arroz', 'Categoría': 'Granos', 'Stock': 350, 'Valor Unitario': '$10.00', 'Valor Total': '$3,500.00', 'Estado': 'Activo' },
+          { 'SKU': 'PRD-003', 'Producto': 'Aceite de Girasol', 'Categoría': 'Abarrotes', 'Stock': 45, 'Valor Unitario': '$22.50', 'Valor Total': '$1,012.50', 'Estado': 'Activo' },
+          { 'SKU': 'PRD-004', 'Producto': 'Galletas Surtidas', 'Categoría': 'Snacks', 'Stock': 80, 'Valor Unitario': '$12.00', 'Valor Total': '$960.00', 'Estado': 'Inactivo' },
+        ];
+      }
     } else {
-      previewData.columns = ['Cliente', 'RUT', 'Última Compra', 'Total Facturado', 'Estado'];
-      previewData.rows = [
-        { 'Cliente': 'Supermercados del Norte', 'RUT': '76.123.456-7', 'Última Compra': '15/08/2026', 'Total Facturado': '$15,400.00', 'Estado': 'Activo' },
-        { 'Cliente': 'Minimarket La Esquina', 'RUT': '77.890.123-K', 'Última Compra': '10/08/2026', 'Total Facturado': '$3,200.00', 'Estado': 'Activo' },
-      ];
+      if (form.type === 'clients_list') {
+        rawRows = [
+          { 'ID': 'C-101', 'Cliente': 'Supermercados del Norte', 'RUT': '76.123.456-7', 'Última Compra': '15/08/2026', 'Total Facturado': '$15,400.00', 'Estado': 'Activo' },
+          { 'ID': 'C-102', 'Cliente': 'Minimarket La Esquina', 'RUT': '77.890.123-K', 'Última Compra': '10/08/2026', 'Total Facturado': '$3,200.00', 'Estado': 'Activo' },
+        ];
+      }
     }
+    
+    // Filtrar rawRows para que solo tengan las propiedades de selectedColumns
+    previewData.rows = rawRows.map(row => {
+      const filteredRow: any = {};
+      form.selectedColumns.forEach(col => {
+        filteredRow[col] = row[col] !== undefined ? row[col] : '-';
+      });
+      return filteredRow;
+    });
+    
   }, 600);
 }
 
@@ -298,6 +352,38 @@ function exportPDF() {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 12px;
+}
+
+/* COLUMNS SELECTOR */
+.columns-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  background: #f8fafc;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1.5px solid var(--color-structure-subtle);
+}
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px !important;
+  font-size: 0.82rem !important;
+  color: var(--color-text) !important;
+  font-weight: 500 !important;
+  cursor: pointer;
+  user-select: none;
+}
+.checkbox-label input {
+  cursor: pointer;
+  width: 14px;
+  height: 14px;
+  accent-color: var(--color-structure-base);
+}
+.error-msg {
+  color: #ef4444;
+  font-size: 0.75rem;
+  margin: 2px 0 0 0;
 }
 
 .btn-generate {
@@ -455,12 +541,12 @@ function exportPDF() {
   text-align: left;
   border-bottom: 1px solid var(--color-structure-subtle);
   font-size: 0.9rem;
+  white-space: nowrap;
 }
 .data-table th {
   background: #f8fafc;
   font-weight: 600;
   color: var(--color-text-secondary);
-  white-space: nowrap;
 }
 .data-table tr:last-child td {
   border-bottom: none;
