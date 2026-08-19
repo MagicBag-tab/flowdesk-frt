@@ -95,13 +95,14 @@
             <div class="fecha-inputs">
               <div class="input-group">
                 <label>Desde</label>
-                <input type="date" v-model="form.startDate" class="filtro-input-fecha" />
+                <input type="date" v-model="form.startDate" class="filtro-input-fecha" :class="{'input-error': dateError}" />
               </div>
               <div class="input-group">
                 <label>Hasta</label>
-                <input type="date" v-model="form.endDate" class="filtro-input-fecha" />
+                <input type="date" v-model="form.endDate" class="filtro-input-fecha" :class="{'input-error': dateError}" />
               </div>
             </div>
+            <p v-if="dateError" class="error-msg">{{ dateError }}</p>
           </div>
 
           <div class="filtros-divider" />
@@ -138,7 +139,7 @@
             <p v-if="form.selectedColumns.length === 0" class="error-msg">Selecciona al menos una.</p>
           </div>
 
-          <button type="submit" class="btn-generate" :disabled="isLoading || form.selectedColumns.length === 0">
+          <button type="submit" class="btn-generate" :disabled="isLoading || !isFormValid">
             <span v-if="isLoading">Generando...</span>
             <span v-else>Generar Vista Previa</span>
           </button>
@@ -212,6 +213,22 @@ function toggleColumn(col: string) {
     form.selectedColumns.splice(idx, 1);
   }
 }
+
+const dateError = computed(() => {
+  if (form.startDate && form.endDate) {
+    if (new Date(form.startDate) > new Date(form.endDate)) {
+      return 'Fecha inicial no puede ser mayor a la final.';
+    }
+  }
+  return '';
+});
+
+const isFormValid = computed(() => {
+  if (form.selectedColumns.length === 0) return false;
+  if (!form.startDate || !form.endDate) return false;
+  if (dateError.value) return false;
+  return true;
+});
 
 const isLoading = ref(false);
 const hasPreview = ref(false);
@@ -436,6 +453,9 @@ function exportPDF() {
 }
 .filtro-input-fecha {
   padding: 7px 10px;
+}
+.filtro-input-fecha.input-error {
+  border-color: #ef4444;
 }
 
 .column-header {
