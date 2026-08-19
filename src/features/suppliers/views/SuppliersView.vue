@@ -51,9 +51,6 @@
           >
             <div class="supplier-item-content">
               <div class="supplier-name">{{ sup.nombre }}</div>
-              <div class="supplier-desc">
-                {{ getSupplierCategory(sup) }}
-              </div>
             </div>
           </li>
         </ul>
@@ -76,7 +73,6 @@
           <div class="detail-header">
             <div>
               <h2 class="detail-name">{{ selectedSupplier.nombre }}</h2>
-              <p class="detail-desc">{{ getSupplierCategory(selectedSupplier) }}</p>
             </div>
             <div class="detail-actions">
               <button class="btn-icon-action" @click="openEditModal(selectedSupplier)" title="Editar información">
@@ -205,12 +201,7 @@ function selectSupplier(sup: Supplier) {
   selectedSupplier.value = sup;
 }
 
-function getSupplierCategory(sup: Supplier) {
-  const hash = sup.nombre.length;
-  if (hash % 3 === 0) return 'Proveeduría de empaques y logística';
-  if (hash % 3 === 1) return 'Materiales de oficina y papelería';
-  return 'Componentes electrónicos y refacciones';
-}
+
 
 async function toggleStatus(sup: Supplier) {
   if (isToggling.value) return;

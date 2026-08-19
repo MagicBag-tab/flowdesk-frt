@@ -16,7 +16,7 @@
         <form @submit.prevent="submit" class="form-grid">
           <div class="form-group full-width">
             <label class="form-label">Nombre o Razón Social *</label>
-            <input v-model="form.nombre" type="text" class="form-input" required placeholder="Ej. Distribuidora S.A." />
+            <input v-model="form.nombre" type="text" class="form-input" required placeholder="Ej. Distribuidora San Juan (Bebidas)" />
           </div>
 
           <div class="form-group">
